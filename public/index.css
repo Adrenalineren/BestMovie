@@ -1,0 +1,384 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Quicksand", sans-serif;
+}
+
+body {
+  font-family: "Quicksand", sans-serif;
+  background: url("/cinema.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+.navbar {
+  background: #7a2c2c;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar h1 {
+  font-size: 24px;
+}
+
+.dashboardbutton {
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-info {
+  font-size: 14px;
+}
+
+.logout-btn {
+  background: #e74c3c;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: #c0392b;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.welcome-message {
+  color: #333;
+}
+
+.welcome-message h2 {
+  margin-bottom: 15px;
+  color: #667eea;
+}
+
+/* HAMBURGER MENU */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  background: none;
+  border: none;
+  cursor: pointer;
+  gap: 5px;
+  padding: 5px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(8px, -8px);
+}
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  left: -300px;
+  top: 0;
+  width: 300px;
+  height: 100vh;
+  background: #814a4a;
+  padding-top: 60px;
+  transition: left 0.3s ease;
+  z-index: 999;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+}
+
+.sidebar-nav h1 {
+  color: #ffc8c8;
+  margin-left: 25px;
+}
+
+.sidebar-link {
+  color: white;
+  text-decoration: none;
+  padding: 15px 20px;
+  transition: background 0.3s;
+  border-left: 4px solid transparent;
+  display: block;
+}
+
+.sidebar-link:hover {
+  background: #a15b5b;
+  border-left-color: #ffffff;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  opacity: 0.7;
+}
+
+/* LOGIN PAGE */
+body {
+  min-height: 100vh;
+}
+
+.login-container {
+  background: rgb(71, 8, 8);
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.login-container h1 {
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 30px;
+  font-size: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #b3abab;
+  font-weight: 500;
+}
+
+input[type="text"], 
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+input[type="text"]:focus, 
+input[type="password"]:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background: #e2b5b5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #f58a8a;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c33;
+}
+
+.error-message.hidden {
+  display: none;
+}
+
+/* LOGIN PAGE BODY OVERRIDE */
+.login-page-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("/cinema.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+.seat { 
+    width: 32px; 
+    height: 32px; 
+    margin: 3px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 11px; 
+    border: none; 
+}
+.seat.normal { 
+    background: #81d7a0; 
+}
+.seat.wheelchair { 
+    background: #8db5e6; 
+}
+.seat.deleted { 
+    background: #374151; 
+    opacity: 0.3; 
+    cursor: default; 
+}
+.screen { 
+    background: #e5e7eb; 
+    text-align: center; 
+    padding: 8px; 
+    border-radius: 6px; 
+    margin: 10px auto 20px auto; 
+    font-weight: bold; 
+    letter-spacing: 4px;
+    width: 500px;
+}
+.seat-row { 
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 4px;
+    justify-content: center;
+}
+.row-label { 
+    width: 24px; 
+    font-size: 12px; 
+    color: #6b7280; 
+}
+
+#diagram-section { 
+    display: none; 
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#seat-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.legend span { 
+    display: inline-block; 
+    width: 16px; 
+    height: 16px; 
+    border-radius: 3px; 
+    margin-right: 6px; 
+    vertical-align: middle; 
+}
+
+.btn-create-hall {
+    background: #a0b971;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 200px;
+    transition: background 0.3s;
+}
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-success {
+    background: #eb9e97;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 200px;
+    transition: background 0.3s;
+}
+.btn-success:hover {
+    background: #f58a8a;
+}

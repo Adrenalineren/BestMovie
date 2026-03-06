@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Best Cinema - Hall Management</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
 
 <body>
@@ -13,10 +13,57 @@
   <%- include('sidebar') %>
 
   <div class="container">
-    <div class="welcome-message">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <h2>Hall Management</h2>
-      <p>Manage cinema halls here.</p>
+      <a href="/admin/hall-management/create" class="btn btn-create-hall">+ Create Hall</a>
     </div>
+
+    <% if (halls.length === 0) { %>
+      <p>No halls created yet.</p>
+    <% } else { %>
+      <table class="table" style="margin-top:20px;">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Rows</th>
+            <th>Cols</th>
+            <th>Seats</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% halls.forEach(hall => { %>
+          <tr>
+            <td><%= hall.name %></td>
+            <td><%= hall.type %></td>
+            <td><%= hall.rows %></td>
+            <td><%= hall.columns %></td>
+            <td><%= hall.seat.length %></td>
+            <td></td>
+            <td></td>
+            <td>
+              <span class="badge <%= hall.status === 'active' ? 'badge-success' : 'badge-danger' %>">
+                <%= hall.status === 'active' ? 'Active' : 'Under Maintenance' %>
+              </span>
+            </td>
+            <td>
+              <form method="POST" action="/admin/hall-management/<%= hall._id %>/status" style="display:inline">
+                <button class="btn btn-sm btn-warning">
+                  <%= hall.status === 'active' ? 'Set Maintenance' : 'Set Active' %>
+                </button>
+              </form>
+              <form method="POST" action="/admin/hall-management/<%= hall._id %>/delete" style="display:inline"
+                onsubmit="return confirm('Delete this hall?')">
+                <button class="btn btn-sm btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
   </div>
 
   <script src="/sidebar-toggle.js"></script>

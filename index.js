@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
+const { ObjectId } = require('mongodb');
 const {connectToDatabase, disconnect, getCollection} = require('./lib/database');
 const requireLogin = require('./middleware/auth');
 const app = express();
@@ -56,8 +57,43 @@ app.get('/logout', (req, res) => {
   });
 });
 
-app.get('/admin/hall-management', requireLogin, (req, res) => {
-  res.render('hall-management', { user: req.session.user });
+app.get('/admin/hall-management', requireLogin, async (req, res) => {
+  const halls = getCollection('halls');
+  const allHalls = await halls.find().toArray();
+  res.render('hall-management', { user: req.session.user, halls: allHalls });
+});
+
+app.get('/admin/hall-management/create', requireLogin, (req, res) => {
+  res.render('hall-create', { user: req.session.user });
+});
+// specifics of creating hall
+app.post('/admin/hall-management/create', requireLogin, async (req, res) => {
+  const { name, type, rows, columns, seat } = req.body;
+  const halls = getCollection('halls');
+  await halls.insertOne({ 
+    name, 
+    type, 
+    rows: parseInt(rows), 
+    columns: parseInt(columns), 
+    seat: seat ? JSON.parse(seat) : [], 
+    status: 'active' });
+  res.redirect('/admin/hall-management');
+});
+
+//maintenance status 
+app.post('/admin/hall-management/:id/status', requireLogin, async (req, res) => {
+  const halls = getCollection('halls');
+  const hall = await halls.findOne({ _id: new ObjectId(req.params.id) });
+  const newStatus = hall.status === 'active' ? 'maintenance' : 'active';
+  await halls.updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status: newStatus } });
+  res.redirect('/admin/hall-management');
+});
+
+//delete hall
+app.post('/admin/hall-management/:id/delete', requireLogin, async (req, res) => {
+  const halls = getCollection('halls');
+  await halls.deleteOne({ _id: new ObjectId(req.params.id) });
+  res.redirect('/admin/hall-management');
 });
 
 app.get('/admin/movie-management', requireLogin, (req, res) => {
