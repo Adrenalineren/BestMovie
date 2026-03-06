@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Best Cinema - Screening Management</title>
+  <title>Best Cinema - Movie Management</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/index.css">
 </head>
@@ -13,12 +13,7 @@
   <%- include('sidebar') %>
 
   <div class="container">
-    <div class="welcome-message">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <h2>Screening Management</h2>
-      <p>Manage screenings here.</p>
+      <a href="/admin/screening-management/create" class="btn btn-create-hall">+ Add Screening</a>
     </div>
-  </div>
-
-  <script src="/sidebar-toggle.js"></script>
-</body>
-</html>

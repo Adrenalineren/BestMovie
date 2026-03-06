@@ -13,10 +13,55 @@
   <%- include('sidebar') %>
 
   <div class="container">
-    <div class="welcome-message">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <h2>Movie Management</h2>
-      <p>Manage movies here.</p>
+      <a href="/admin/movie-management/create" class="btn btn-create-hall">+ Add Film</a>
     </div>
+
+    <% if (movies.length === 0) { %>
+      <p>No Films added yet.</p>
+    <% } else { %>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Poster</th>
+            <th>Genre</th>
+            <th>Duration (minutes)</th>
+            <th>Age Rating</th>
+            <th>Release Date</th>
+            <th>Summary</th>
+            <th>Rating (0-10)</th>
+            <th>Price (S$)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% movies.forEach(movie => { %>
+          <tr>
+            <td><%= movie.title %></td>
+            <td><img src="<%= movie.poster %>" style="max-width: 80px; max-height: 120px; object-fit: cover;" alt="<%= movie.title %> poster" /></td>
+            <td><%= Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre %></td>
+            <td><%= movie.duration %></td>
+            <td><%= movie.ageRating %></td>
+            <td><%= movie.releaseDate %></td>
+            <td><%= movie.summary %></td>
+            <td><%= movie.rating %></td>
+            <td><%= movie.price %></td>
+            <td>
+              <form method="GET" action="/admin/movie-management/<%= movie._id %>/edit" style="display:inline">
+                <button class="btn btn-sm btn-edit">Edit</button>
+              </form>
+              <form method="POST" action="/admin/movie-management/<%= movie._id %>/delete" style="display:inline"
+                onsubmit="return confirm('Delete this Film?')">
+                <button class="btn btn-sm btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
   </div>
 
   <script src="/sidebar-toggle.js"></script>
