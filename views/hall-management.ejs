@@ -21,14 +21,15 @@
     <% if (halls.length === 0) { %>
       <p>No halls created yet.</p>
     <% } else { %>
-      <table class="table" style="margin-top:20px;">
+      <table class="table">
         <thead>
           <tr>
-            <th>Name</th>
             <th>Type</th>
+            <th>Name</th>
             <th>Rows</th>
-            <th>Cols</th>
+            <th>Columns</th>
             <th>Seats</th>
+            <th>Wheelchair</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -36,13 +37,12 @@
         <tbody>
           <% halls.forEach(hall => { %>
           <tr>
-            <td><%= hall.name %></td>
             <td><%= hall.type %></td>
+            <td><%= hall.name %></td>
             <td><%= hall.rows %></td>
             <td><%= hall.columns %></td>
-            <td><%= hall.seat.length %></td>
-            <td></td>
-            <td></td>
+            <td><%= (hall.rows * hall.columns) - (hall.wheelchair || 0) %></td>
+            <td><%= hall.wheelchair || 0 %></td>
             <td>
               <span class="badge <%= hall.status === 'active' ? 'badge-success' : 'badge-danger' %>">
                 <%= hall.status === 'active' ? 'Active' : 'Under Maintenance' %>
@@ -53,6 +53,9 @@
                 <button class="btn btn-sm btn-warning">
                   <%= hall.status === 'active' ? 'Set Maintenance' : 'Set Active' %>
                 </button>
+              </form>
+              <form method="GET" action="/admin/hall-management/<%= hall._id %>/edit" style="display:inline">
+                <button class="btn btn-sm btn-edit">Edit</button>
               </form>
               <form method="POST" action="/admin/hall-management/<%= hall._id %>/delete" style="display:inline"
                 onsubmit="return confirm('Delete this hall?')">

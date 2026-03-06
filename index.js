@@ -64,11 +64,11 @@ app.get('/admin/hall-management', requireLogin, async (req, res) => {
 });
 
 app.get('/admin/hall-management/create', requireLogin, (req, res) => {
-  res.render('hall-create', { user: req.session.user });
+  res.render('hall-create', { user: req.session.user, hall: null });
 });
 // specifics of creating hall
 app.post('/admin/hall-management/create', requireLogin, async (req, res) => {
-  const { name, type, rows, columns, seat } = req.body;
+  const { name, type, rows, columns, seat, wheelchair } = req.body;
   const halls = getCollection('halls');
   await halls.insertOne({ 
     name, 
@@ -76,6 +76,7 @@ app.post('/admin/hall-management/create', requireLogin, async (req, res) => {
     rows: parseInt(rows), 
     columns: parseInt(columns), 
     seat: seat ? JSON.parse(seat) : [], 
+    wheelchair: parseInt(wheelchair) || 0,
     status: 'active' });
   res.redirect('/admin/hall-management');
 });
@@ -93,6 +94,25 @@ app.post('/admin/hall-management/:id/status', requireLogin, async (req, res) => 
 app.post('/admin/hall-management/:id/delete', requireLogin, async (req, res) => {
   const halls = getCollection('halls');
   await halls.deleteOne({ _id: new ObjectId(req.params.id) });
+  res.redirect('/admin/hall-management');
+});
+
+app.get('/admin/hall-management/:id/edit', requireLogin, async (req, res) => {
+  const hallId = req.params.id;
+  const halls = getCollection('halls');
+  const hall = await halls.findOne({ _id: new ObjectId(hallId) });
+  if (!hall) return res.status(404).send('Hall not found');
+  res.render('hall-create', { user: req.session.user, hall });
+});
+
+app.post('/admin/hall-management/:id/edit', requireLogin, async (req, res) => {
+  const hallId = req.params.id;
+  const { name, type, rows, columns, seat, wheelchair } = req.body;
+  const halls = getCollection('halls');
+  await halls.updateOne(
+    { _id: new ObjectId(hallId) },
+    { $set: { name, type, rows: parseInt(rows), columns: parseInt(columns), seat: seat ? JSON.parse(seat) : [], wheelchair: parseInt(wheelchair) || 0 } }
+  );
   res.redirect('/admin/hall-management');
 });
 
