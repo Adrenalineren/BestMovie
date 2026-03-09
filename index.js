@@ -60,8 +60,105 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.get('/admin/dashboard', requireLogin, (req, res) => {
-  res.render('dashboard', { user: req.session.user });
+app.get('/admin/dashboard', requireLogin, async (req, res) => {
+  try {
+    const movies = getCollection('movies');
+    const screenings = getCollection('screenings');
+    const halls = getCollection('halls');
+
+    // Get today's date
+    const today = new Date();
+    const todayDateStr = today.toISOString().split('T')[0];
+    const currentTime = today.getHours() * 60 + today.getMinutes(); // current time in minutes
+
+    // Get all screenings for today
+    const todayScreenings = await screenings.find({
+      date: todayDateStr
+    }).sort({ screeningTime: 1 }).toArray();
+
+    // Find currently playing movies (screenings that are happening right now)
+    const playingScreenings = todayScreenings.filter(screening => {
+      const screeningStart = timeToMinutes(screening.screeningTime);
+      const screeningEnd = timeToMinutes(screening.endTime);
+      return currentTime >= screeningStart && currentTime <= screeningEnd;
+    });
+
+    // Get upcoming screenings for the next 5 days
+    const upcomingDates = [];
+    for (let i = 1; i <= 5; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + i);
+      upcomingDates.push(date.toISOString().split('T')[0]);
+    }
+
+    const upcomingScreenings = await screenings.find({
+      date: { $in: upcomingDates }
+    }).sort({ date: 1, screeningTime: 1 }).toArray();
+
+    // Populate movie and hall details for playing screenings
+    const playingMovies = await Promise.all(
+      playingScreenings.map(async (screening) => {
+        const movie = await movies.findOne({ _id: screening.movieId });
+        const hall = await halls.findOne({ _id: screening.hallId });
+        return {
+          ...screening,
+          movieTitle: movie?.title || 'Unknown Movie',
+          poster: movie?.poster || 'https://via.placeholder.com/200x300?text=No+Image',
+          hallName: hall?.name || 'Unknown Hall'
+        };
+      })
+    );
+
+    // Populate movie and hall details for all today's screenings
+    const populatedTodayScreenings = await Promise.all(
+      todayScreenings.map(async (screening) => {
+        const movie = await movies.findOne({ _id: screening.movieId });
+        const hall = await halls.findOne({ _id: screening.hallId });
+        return {
+          ...screening,
+          movieTitle: movie?.title || 'Unknown Movie',
+          poster: movie?.poster || 'https://via.placeholder.com/200x300?text=No+Image',
+          hallName: hall?.name || 'Unknown Hall'
+        };
+      })
+    );
+
+    // Populate movie and hall details for upcoming screenings
+    const populatedUpcomingScreenings = await Promise.all(
+      upcomingScreenings.map(async (screening) => {
+        const movie = await movies.findOne({ _id: screening.movieId });
+        const hall = await halls.findOne({ _id: screening.hallId });
+        return {
+          ...screening,
+          movieTitle: movie?.title || 'Unknown Movie',
+          poster: movie?.poster || 'https://via.placeholder.com/200x300?text=No+Image',
+          hallName: hall?.name || 'Unknown Hall'
+        };
+      })
+    );
+
+    res.render('dashboard', { 
+      user: req.session.user, 
+      playingMovies: playingMovies,
+      playingMoviesCount: playingMovies.length,
+      todayScreenings: populatedTodayScreenings,
+      todayScreeningsCount: populatedTodayScreenings.length,
+      upcomingScreenings: populatedUpcomingScreenings,
+      upcomingScreeningsCount: populatedUpcomingScreenings.length
+    });
+  } catch (err) {
+    console.error('Dashboard error:', err);
+    res.render('dashboard', { 
+      user: req.session.user, 
+      playingMovies: [],
+      playingMoviesCount: 0,
+      todayScreenings: [],
+      todayScreeningsCount: 0,
+      upcomingScreenings: [],
+      upcomingScreeningsCount: 0,
+      error: err.message
+    });
+  }
 });
 
 app.get('/logout', (req, res) => {

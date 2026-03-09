@@ -3,22 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Best Cinema - Hall Management</title>
+  <title>Best Cinema - Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/index.css">
 </head>
-
 <body>
   <%- include('navbar') %>
   <%- include('sidebar') %>
 
-  <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2>Dashboard</h2>
+<div class="dashboard">
+  <div class="container-dashboard">
+    <h2 style="margin-bottom: 20px;">Management Dashboard</h2>
+
+    <div class="dashboard-wrapper">
+
+      <!-- LEFT SIDE PANEL (Quick Actions + Upcoming) -->
+      <div class="dashboard-left-panel">
+
+        <!-- Quick Actions -->
+        <div class="quick-actions-panel">
+          <div class="panel-title">Quick Actions</div>
+          <a href="/admin/hall-management" class="action-link">
+            <i class="bi bi-building-fill-add"></i> Manage Halls
+          </a>
+          <a href="/admin/movie-management" class="action-link">
+            <i class="bi bi-film"></i> Manage Movies
+          </a>
+          <a href="/admin/screening-management" class="action-link">
+            <i class="bi bi-calendar-event"></i> Manage Screenings
+          </a>
+        </div>
+
+        <!-- Upcoming Screenings (next 5 days) -->
+        <div class="upcoming-panel">
+          <div class="panel-title">Upcoming — Next 5 Days (<%= upcomingScreeningsCount %>)</div>
+          <% if (upcomingScreenings && upcomingScreenings.length > 0) { %>
+            <div class="upcoming-list">
+              <% upcomingScreenings.forEach(screening => { %>
+                <div class="upcoming-list-item">
+                  <div class="upcoming-item-left">
+                    <div class="movie-name"><%= screening.movieTitle %></div>
+                    <div class="movie-time"><%= screening.screeningTime %> &bull; <%= screening.hallName %></div>
+                  </div>
+                  <div class="movie-date"><%= screening.date %></div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="no-content">
+              <i class="bi bi-calendar-plus"></i>
+              <p>No upcoming screenings</p>
+            </div>
+          <% } %>
+        </div>
+
+      </div>
+
+      <!-- RIGHT MAIN CONTENT -->
+      <div class="dashboard-main">
+
+        <!-- Total Active Movies -->
+        <div class="playing-section">
+          <div class="section-title">Total Active Movies (<%= playingMoviesCount %>)</div>
+          <% if (playingMovies && playingMovies.length > 0) { %>
+            <div class="playing-movies-grid">
+              <% playingMovies.forEach(screening => { %>
+                <div class="movie-card">
+                  <img src="<%= screening.poster %>" alt="<%= screening.movieTitle %>" class="movie-poster" onerror="this.src='/placeholder.jpg'" />
+                  <div class="movie-info">
+                    <div class="movie-title"><%= screening.movieTitle %></div>
+                    <div class="movie-details">
+                      <div class="detail-row">
+                        <span class="detail-label">Hall:</span>
+                        <span class="detail-value"><%= screening.hallName %></span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Start:</span>
+                        <span class="detail-value"><%= screening.screeningTime %></span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">End:</span>
+                        <span class="detail-value"><%= screening.endTime %></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="no-content">
+              <i class="bi bi-film"></i>
+              <p>No movies currently playing</p>
+            </div>
+          <% } %>
+        </div>
+
+        <!-- Screenings Today with dropdown -->
+        <div class="screenings-today-section">
+          <div class="section-title-row">
+            <div class="section-title">Screenings Today (<%= todayScreeningsCount %>)</div>
+            <% if (todayScreenings && todayScreenings.length > 3) { %>
+              <button class="show-more-btn" id="todayToggleBtn" onclick="toggleTodayScreenings()">Show All</button>
+            <% } %>
+          </div>
+
+          <% if (todayScreenings && todayScreenings.length > 0) { %>
+            <div class="today-screenings-list" id="todayScreeningsList">
+              <% todayScreenings.forEach((screening, index) => { %>
+                <div class="today-screening-item <%= index >= 3 ? 'hidden-item' : '' %>">
+                  <img src="<%= screening.poster %>" alt="<%= screening.movieTitle %>" class="today-poster" onerror="this.src='/placeholder.jpg'" />
+                  <div class="today-info">
+                    <div class="today-title"><%= screening.movieTitle %></div>
+                    <div class="today-meta"><i class="bi bi-clock"></i> <%= screening.screeningTime %></div>
+                    <div class="today-meta"><i class="bi bi-building"></i> <%= screening.hallName %></div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="no-content">
+              <i class="bi bi-calendar-x"></i>
+              <p>No screenings scheduled for today</p>
+            </div>
+          <% } %>
+        </div>
+
+      </div>
     </div>
+  </div>
+</div>
 
   <script src="/sidebar-toggle.js"></script>
-</body>
-</html>
+  <script>
+    let todayExpanded = false;
+
+    function toggleTodayScreenings() {
+      const hiddenItems = document.querySelectorAll('.hidden-item');
+      const btn = document.getElementById('todayToggleBtn');
+      todayExpanded = !todayExpanded;
+      hiddenItems.forEach(item => {
+        item.style.display = todayExpanded ? 'flex' : 'none';
+      });
+      btn.textContent = todayExpanded ? 'Show Less' : 'Show All';
+    }
+  </script>
 </body>
 </html>
