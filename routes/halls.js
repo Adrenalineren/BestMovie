@@ -50,6 +50,14 @@ router.post('/admin/hall-management/:id/delete', requireLogin, async (req, res) 
   res.redirect('/admin/hall-management');
 });
 
+router.get('/admin/hall-management/:id/view', requireLogin, async (req, res) => {
+  const hallId = req.params.id;
+  const halls = getCollection('halls');
+  const hall = await halls.findOne({ _id: new ObjectId(hallId) });
+  if (!hall) return res.status(404).send('Hall not found');
+  res.render('hall-view', { user: req.session.user, hall });
+});
+
 router.get('/admin/hall-management/:id/edit', requireLogin, async (req, res) => {
   const hallId = req.params.id;
   const halls = getCollection('halls');

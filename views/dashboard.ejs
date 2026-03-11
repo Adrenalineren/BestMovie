@@ -29,17 +29,20 @@
           </a>
         </div>
         <div class="upcoming-panel">
-          <div class="panel-title">Upcoming — Next 5 Days (<%= upcomingScreeningsCount %>)</div>
+          <div class="panel-title">Upcoming — Today & Next 5 Days (<%= upcomingScreeningsCount %>)</div>
           <% if (upcomingScreenings && upcomingScreenings.length > 0) { %>
             <div class="upcoming-list">
               <% upcomingScreenings.forEach(screening => { %>
-                <div class="upcoming-list-item">
-                  <div class="upcoming-item-left">
-                    <div class="movie-name"><%= screening.movieTitle %></div>
-                    <div class="movie-time"><%= screening.screeningTime %> &bull; <%= screening.hallName %></div>
+                <a href="/admin/screening-management/<%= screening._id %>/edit" style="text-decoration: none; color: inherit;">
+                  <div class="upcoming-list-item" style="cursor: pointer;">
+                    <div class="upcoming-item-left">
+                       <img src="<%= screening.poster %>" alt="<%= screening.movieTitle %>" class="upcoming-poster" onerror="this.src='/placeholder.jpg'" />
+                      <div class="movie-name"><%= screening.movieTitle %></div>
+                      <div class="movie-time"><%= screening.screeningTime %> &bull; <%= screening.hallName %></div>
+                    </div>
+                    <div class="movie-date"><%= screening.date %></div>
                   </div>
-                  <div class="movie-date"><%= screening.date %></div>
-                </div>
+                </a>
               <% }); %>
             </div>
           <% } else { %>
@@ -105,6 +108,31 @@
             <div class="no-content">
               <i class="bi bi-film"></i>
               <p>No movies currently playing</p>
+            </div>
+          <% } %>
+        </div>
+        <div class="upcoming-today-section">
+          <div class="section-title">Coming up (<%= upcomingTodayScreeningsCount %>)</div>
+
+          <% if (upcomingTodayScreenings && upcomingTodayScreenings.length > 0) { %>
+            <div class="upcoming-today-list">
+              <% upcomingTodayScreenings.forEach(screening => { %>
+                <a href="/admin/screening-management/<%= screening._id %>/edit" style="text-decoration: none; color: inherit;">
+                  <div class="upcoming-today-item" style="cursor: pointer;">
+                    <img src="<%= screening.poster %>" alt="<%= screening.movieTitle %>" class="upcoming-poster" onerror="this.src='/placeholder.jpg'" />
+                    <div class="upcoming-today-info">
+                      <div class="upcoming-today-title"><%= screening.movieTitle %></div>
+                      <div class="upcoming-today-time"><i class="bi bi-clock"></i> <%= screening.screeningTime %></div>
+                      <div class="upcoming-today-hall"><i class="bi bi-building"></i> <%= screening.hallName %></div>
+                    </div>
+                  </div>
+                </a>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="no-content">
+              <i class="bi bi-hourglass-end"></i>
+              <p>No upcoming screenings Today</p>
             </div>
           <% } %>
         </div>

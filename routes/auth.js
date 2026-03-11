@@ -58,7 +58,7 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       return currentTime >= screeningStart && currentTime <= screeningEnd;
     });
 
-    // Get upcoming screenings for the next 5 days
+    // Get upcoming screenings for the next 5 days (starting from tomorrow)
     const upcomingDates = [];
     for (let i = 1; i <= 5; i++) {
       const date = new Date(today);
@@ -66,7 +66,7 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       upcomingDates.push(date.toISOString().split('T')[0]);
     }
 
-    const upcomingScreenings = await screenings.find({
+    const nextFiveDaysScreenings = await screenings.find({
       date: { $in: upcomingDates }
     }).sort({ date: 1, screeningTime: 1 }).toArray();
 
@@ -98,9 +98,9 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       })
     );
 
-    // Populate movie and hall details for upcoming screenings
-    const populatedUpcomingScreenings = await Promise.all(
-      upcomingScreenings.map(async (screening) => {
+    // Populate movie and hall details for next 5 days screenings
+    const populatedNextFiveDaysScreenings = await Promise.all(
+      nextFiveDaysScreenings.map(async (screening) => {
         const movie = await movies.findOne({ _id: screening.movieId });
         const hall = await halls.findOne({ _id: screening.hallId });
         return {
@@ -112,6 +112,15 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       })
     );
 
+    // Get upcoming screenings TODAY ONLY (today but not yet started)
+    const upcomingTodayScreenings = populatedTodayScreenings.filter(screening => {
+      const screeningStart = timeToMinutes(screening.screeningTime);
+      return currentTime < screeningStart;
+    });
+
+    // Combine upcoming today screenings with next 5 days for the "Upcoming" panel
+    const combinedUpcomingScreenings = [...upcomingTodayScreenings, ...populatedNextFiveDaysScreenings];
+
     // Get available halls (with status 'active')
     const availableHalls = await halls.find({ status: 'active' }).toArray();
 
@@ -119,10 +128,12 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       user: req.session.user, 
       playingMovies: playingMovies,
       playingMoviesCount: playingMovies.length,
+      upcomingTodayScreenings: upcomingTodayScreenings,
+      upcomingTodayScreeningsCount: upcomingTodayScreenings.length,
       todayScreenings: populatedTodayScreenings,
       todayScreeningsCount: populatedTodayScreenings.length,
-      upcomingScreenings: populatedUpcomingScreenings,
-      upcomingScreeningsCount: populatedUpcomingScreenings.length,
+      upcomingScreenings: combinedUpcomingScreenings,
+      upcomingScreeningsCount: combinedUpcomingScreenings.length,
       availableHalls: availableHalls,
       availableHallsCount: availableHalls.length
     });
@@ -132,6 +143,8 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       user: req.session.user, 
       playingMovies: [],
       playingMoviesCount: 0,
+      upcomingTodayScreenings: [],
+      upcomingTodayScreeningsCount: 0,
       todayScreenings: [],
       todayScreeningsCount: 0,
       upcomingScreenings: [],

@@ -18,8 +18,47 @@
       <a href="/admin/movie-management/create" class="btn btn-create-hall">+ Add Film</a>
     </div>
 
+    <% if (error) { %>
+      <div style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px;">
+        <i class="bi bi-exclamation-circle"></i> <%= error %>
+      </div>
+    <% } %>
+
     <div class="search-bar">
       <input type="text" id="movieSearchInput" placeholder="Search movies by title..." class="form-control" style="max-width: 300px;">
+    </div>
+
+    <div class="filters-container">
+      <div class="filter-age">
+        <label for="ageFilter">Filter by Age Rating:</label>
+        <select id="ageFilter" class="form-control">
+          <option value="">All</option>
+          <option value="G">G</option>
+          <option value="PG">PG</option>
+          <option value="PG-13">PG13</option>
+          <option value="NC16">NC16</option>
+          <option value="M18">M18</option>
+          <option value="R21">R21</option>
+        </select>
+      </div>
+
+      <div class="filter-genre">
+        <label for="genreFilter">Filter by Genre:</label>
+        <select id="genreFilter" class="form-control">
+          <option value="">All</option>
+          <option value="Drama">Drama</option>
+          <option value="Romance">Romance</option>
+          <option value="Comedy">Comedy</option>
+          <option value="Sci-Fi">Sci-Fi</option>
+          <option value="Action">Action</option>
+          <option value="Horror">Horror</option>
+          <option value="Thriller">Thriller</option>
+          <option value="Documentary">Documentary</option>
+          <option value="Autobiography">Autobiography</option>
+          <option value="Coming of Age">Coming of Age</option>
+          <option value="Sports">Sports</option>
+        </select>
+      </div>
     </div>
 
     <% if (movies.length === 0) { %>
@@ -71,19 +110,45 @@
   <script src="/sidebar-toggle.js"></script>
   <script>
     const searchInput = document.getElementById('movieSearchInput');
+    const ageFilter = document.getElementById('ageFilter');
+    const genreFilter = document.getElementById('genreFilter');
     const tableRows = document.querySelectorAll('table tbody tr');
 
-    searchInput.addEventListener('keyup', () => {
+    function applyFilters() {
       const searchTerm = searchInput.value.toLowerCase();
+      const selectedAge = ageFilter.value;
+      const selectedGenre = genreFilter.value;
+
       tableRows.forEach(row => {
         const titleCell = row.cells[0];
-        if (titleCell.textContent.toLowerCase().includes(searchTerm)) {
+        const genreCell = row.cells[2];
+        const ageCell = row.cells[4];
+
+        // Check search
+        const matchesSearch = titleCell.textContent.toLowerCase().includes(searchTerm);
+        
+        // Check age filter
+        const matchesAge = selectedAge === '' || ageCell.textContent.trim() === selectedAge;
+        
+        // Check genre filter (check if selected genre is in the comma-separated list)
+        let matchesGenre = selectedGenre === '';
+        if (selectedGenre !== '') {
+          const genreList = genreCell.textContent.split(',').map(g => g.trim());
+          matchesGenre = genreList.includes(selectedGenre);
+        }
+
+        // Show row only if all conditions are met
+        if (matchesSearch && matchesAge && matchesGenre) {
           row.style.display = '';
         } else {
           row.style.display = 'none';
         }
       });
-    });
+    }
+
+    searchInput.addEventListener('keyup', applyFilters);
+    ageFilter.addEventListener('change', applyFilters);
+    genreFilter.addEventListener('change', applyFilters);
   </script>
 </body>
 </html>

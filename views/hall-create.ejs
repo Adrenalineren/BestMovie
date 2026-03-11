@@ -59,8 +59,6 @@
 
       <div class="screen">SCREEN</div>
       <div id="seat-grid"></div>
-
-      <!-- Hidden form to submit to server -->
       <form method="POST" action="<%= hall ? '/admin/hall-management/' + hall._id + '/edit' : '/admin/hall-management/create' %>" id="confirmForm">
         <input type="hidden" name="name" id="f-name" />
         <input type="hidden" name="type" id="f-type" />

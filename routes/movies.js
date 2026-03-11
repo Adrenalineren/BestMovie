@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/admin/movie-management', requireLogin, async (req, res) => {
   const movies = getCollection('movies');
   const allMovies = await movies.find().toArray();
-  res.render('movie-management', { user: req.session.user, movies: allMovies });
+  res.render('movie-management', { user: req.session.user, movies: allMovies, error: undefined });
 });
 
 router.get('/admin/movie-management/create', requireLogin, (req, res) => {
@@ -52,9 +52,45 @@ router.post('/admin/movie-management/create', requireLogin, async (req, res) => 
 });
 
 router.post('/admin/movie-management/:id/delete', requireLogin, async (req, res) => {
+  const movieId = req.params.id;
   const movies = getCollection('movies');
-  await movies.deleteOne({ _id: new ObjectId(req.params.id) });
-  res.redirect('/admin/movie-management');
+  const screenings = getCollection('screenings');
+  
+  try {
+    // Check if movie has future screenings
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Check for future screenings (date >= today)
+    const futureScreeningsCount = await screenings.countDocuments({
+      movieId: new ObjectId(movieId),
+      date: { $gte: todayStr }
+    });
+    
+    if (futureScreeningsCount > 0) {
+      // Movie has future screenings - cannot delete
+      const allMovies = await movies.find().toArray();
+      return res.render('movie-management', { 
+        user: req.session.user, 
+        movies: allMovies,
+        error: `Cannot delete movie. ${futureScreeningsCount} future screening(s) scheduled. Cancel all screenings first.`
+      });
+    }
+    
+    // No future screenings - delete all screenings (past) and the movie
+    await screenings.deleteMany({ movieId: new ObjectId(movieId) });
+    await movies.deleteOne({ _id: new ObjectId(movieId) });
+    res.redirect('/admin/movie-management');
+  } catch (err) {
+    console.error('Error deleting movie:', err);
+    const allMovies = await movies.find().toArray();
+    res.render('movie-management', { 
+      user: req.session.user, 
+      movies: allMovies,
+      error: 'Error deleting movie: ' + err.message
+    });
+  }
 });
 
 router.get('/admin/movie-management/:id/edit', requireLogin, async (req, res) => {

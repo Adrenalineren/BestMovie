@@ -413,6 +413,7 @@ button:hover {
     text-decoration: none;
 }
 
+
 .btn-secondary {
     background: #6c757d;
     color: white;
@@ -490,7 +491,7 @@ button:hover {
     color: white;
 }
 
-.btn-primary, .btn-sm, .btn-warning, .btn-danger, .btn-edit {
+.btn-primary, .btn-sm, .btn-warning, .btn-danger, .btn-edit, .btn-viewhall, .btn-backtohalls {
     padding: 6px 12px;
     border: none;
     border-radius: 4px;
@@ -498,6 +499,21 @@ button:hover {
     font-size: 12px;
     margin: 0 4px;
     transition: background 0.3s;
+}
+
+.btn-backtohalls {
+    background: #6c757d;
+    color: white;
+    width: 120px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-viewhall {
+    background: #6c757d;
+    color: white;
+    width: 100px;
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -537,6 +553,10 @@ button:hover {
 }
 .btn-edit:hover {
     background: #4a90e2;
+}
+
+.btn-viewhall:hover {
+    background: #5a6268;
 }
 
 /* DASHBOARD */
@@ -631,6 +651,14 @@ button:hover {
   padding: 10px 12px;
   border-left: 3px solid #7a2c2c;
   font-size: 0.85em;
+  transition: all 0.3s ease;
+}
+
+.upcoming-list-item:hover {
+  background: #f0f8ff;
+  box-shadow: 0 4px 12px rgba(122, 44, 44, 0.2);
+  border-left: 4px solid #7a2c2c;
+  transform: translateX(4px);
 }
 
 .upcoming-item-left {
@@ -793,6 +821,73 @@ button:hover {
   gap: 5px;
 }
 
+/* upcoming screenings today */
+.upcoming-today-section {
+  margin-bottom: 40px;
+}
+
+.upcoming-today-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upcoming-today-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #f9f9f9;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
+}
+
+.upcoming-today-item:hover {
+  background: #fffbf0;
+  border-color: #7a2c2c;
+  box-shadow: 0 4px 12px rgba(122, 44, 44, 0.2);
+  transform: translateY(-2px);
+}
+
+.upcoming-poster {
+  width: 45px;
+  height: 65px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.upcoming-today-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.upcoming-today-title {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.upcoming-today-time {
+  color: #666;
+  font-size: 0.82em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.upcoming-today-hall {
+  color: #666;
+  font-size: 0.82em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 /* shared */
 .no-content {
   text-align: center;
@@ -835,6 +930,32 @@ button:hover {
 .search-bar {
   margin-top: 15px;
   margin-bottom: 15px;
+}
+
+.filters-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-age,
+.filter-genre {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-age label,
+.filter-genre label {
+  margin: 0;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.filter-age .form-control,
+.filter-genre .form-control {
+  width: 150px;
 }
 
 .little-title {
