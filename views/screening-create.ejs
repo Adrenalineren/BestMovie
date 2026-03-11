@@ -94,9 +94,8 @@
         </div>
         <input type="hidden" id="screeningId" name="screeningId" value="<%= screening._id %>" />
       <% } %>
-
-      <button type="submit" class="btn btn-primary"><%= screening ? 'Update Screening' : 'Add Screening' %></button>
-      <a href="/admin/screening-management" class="btn btn-secondary">Cancel</a>
+      <a href="/admin/screening-management" class="btn btn-secondary" style = "text-decoration: none;">Cancel</a>
+      <button type="submit" class="btn btn-success"><%= screening ? 'Update Screening' : 'Add Screening' %></button>
     </form>
   </div>
 

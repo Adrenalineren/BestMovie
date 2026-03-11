@@ -95,7 +95,7 @@ app.get('/admin/dashboard', requireLogin, async (req, res) => {
       date: { $in: upcomingDates }
     }).sort({ date: 1, screeningTime: 1 }).toArray();
 
-    // Populate movie and hall details for playing screenings
+    // populate movie and hall details for playing screenings
     const playingMovies = await Promise.all(
       playingScreenings.map(async (screening) => {
         const movie = await movies.findOne({ _id: screening.movieId });
@@ -175,12 +175,19 @@ app.get('/admin/hall-management', requireLogin, async (req, res) => {
 });
 
 app.get('/admin/hall-management/create', requireLogin, (req, res) => {
-  res.render('hall-create', { user: req.session.user, hall: null });
+  res.render('hall-create', { user: req.session.user, hall: null, error: null });
 });
 // specifics of creating hall
 app.post('/admin/hall-management/create', requireLogin, async (req, res) => {
   const { name, type, rows, columns, seat, wheelchair } = req.body;
   const halls = getCollection('halls');
+  
+  // Check if hall name already exists
+  const existingHall = await halls.findOne({ name: name });
+  if (existingHall) {
+    return res.render('hall-create', { user: req.session.user, hall: null, error: 'A hall with this name already exists' });
+  }
+  
   await halls.insertOne({ 
     name, 
     type, 
@@ -213,13 +220,21 @@ app.get('/admin/hall-management/:id/edit', requireLogin, async (req, res) => {
   const halls = getCollection('halls');
   const hall = await halls.findOne({ _id: new ObjectId(hallId) });
   if (!hall) return res.status(404).send('Hall not found');
-  res.render('hall-create', { user: req.session.user, hall });
+  res.render('hall-create', { user: req.session.user, hall, error: null });
 });
 
 app.post('/admin/hall-management/:id/edit', requireLogin, async (req, res) => {
   const hallId = req.params.id;
   const { name, type, rows, columns, seat, wheelchair } = req.body;
   const halls = getCollection('halls');
+  
+  // Check if another hall with this name already exists
+  const existingHall = await halls.findOne({ name: name, _id: { $ne: new ObjectId(hallId) } });
+  if (existingHall) {
+    const hall = await halls.findOne({ _id: new ObjectId(hallId) });
+    return res.render('hall-create', { user: req.session.user, hall, error: 'A hall with this name already exists' });
+  }
+  
   await halls.updateOne(
     { _id: new ObjectId(hallId) },
     { $set: { name, type, rows: parseInt(rows), columns: parseInt(columns), seat: seat ? JSON.parse(seat) : [], wheelchair: parseInt(wheelchair) || 0 } }
@@ -323,7 +338,7 @@ app.get('/admin/screening-management', requireLogin, async (req, res) => {
   const screenings = getCollection('screenings');
   const movies = getCollection('movies');
   const halls = getCollection('halls');
-  const allScreenings = await screenings.find().toArray();
+  const allScreenings = await screenings.find().sort({ date: 1, screeningTime: 1 }).toArray();
   // get movie titles and hall names
   const populatedScreenings = await Promise.all(
     allScreenings.map(async (screening) => {

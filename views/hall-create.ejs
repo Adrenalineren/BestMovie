@@ -5,16 +5,19 @@
   <title>Create Hall</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/index.css">
-  <style>
- 
-  </style>
+
 </head>
 <body>
   <%- include('navbar') %>
   <%- include('sidebar') %>
 
   <div class="container">
-    <h2><%= hall ? 'Edit Hall' : 'Create Cinema Hall' %></h2>
+    <h2 class="management-title"><%= hall ? 'Edit Hall' : 'Create Cinema Hall' %></h2>
+    <% if (error) { %>
+      <div class="alert alert-danger" role="alert" style="margin-bottom: 20px;">
+        <%= error %>
+      </div>
+    <% } %>
     <div id="form-section">
       <div class="form-group">
         <label>Hall Name</label>

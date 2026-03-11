@@ -14,8 +14,12 @@
 
   <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2>Screening Management</h2>
+      <h2 class = "management-title">Screening Management</h2>
       <a href="/admin/screening-management/create" class="btn btn-create-hall">+ Add Screening</a>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="screeningSearchInput" placeholder="Search by movie title or hall name..." class="form-control" style="max-width: 300px;">
     </div>
 
     <% if (screenings.length === 0) { %>
@@ -39,9 +43,7 @@
           }
         });
       %>
-      
-      <!-- UPCOMING SCREENINGS SECTION -->
-      <h3 style="margin-top: 30px; margin-bottom: 10px;">Upcoming Screenings</h3>
+      <h3 class="little-title">Upcoming Screenings</h3>
       <% if (upcoming.length === 0) { %>
         <p style="color: #666;">No upcoming screenings.</p>
       <% } else { %>
@@ -94,8 +96,7 @@
         </table>
       <% } %>
 
-      <!-- PLAYED SCREENINGS SECTION -->
-      <h3 style="margin-top: 40px; margin-bottom: 10px;">Played Screenings</h3>
+      <h3 class="little-title">Played Screenings</h3>
       <% if (played.length === 0) { %>
         <p style="color: #666;">No played screenings yet.</p>
       <% } else { %>
@@ -135,5 +136,25 @@
   </div>
 
   <script src="/sidebar-toggle.js"></script>
+  <script>
+    const searchInput = document.getElementById('screeningSearchInput');
+    const upcomingRows = document.querySelectorAll('table tbody tr');
+
+    searchInput.addEventListener('keyup', () => {
+      const searchTerm = searchInput.value.toLowerCase();
+      upcomingRows.forEach(row => {
+        const movieCell = row.cells[0];
+        const hallCell = row.cells[1];
+        const movieTitle = movieCell ? movieCell.textContent.toLowerCase() : '';
+        const hallName = hallCell ? hallCell.textContent.toLowerCase() : '';
+        
+        if (movieTitle.includes(searchTerm) || hallName.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

@@ -14,8 +14,12 @@
 
   <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2>Movie Management</h2>
+      <h2 class="management-title">Movie Management</h2>
       <a href="/admin/movie-management/create" class="btn btn-create-hall">+ Add Film</a>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="movieSearchInput" placeholder="Search movies by title..." class="form-control" style="max-width: 300px;">
     </div>
 
     <% if (movies.length === 0) { %>
@@ -65,5 +69,21 @@
   </div>
 
   <script src="/sidebar-toggle.js"></script>
+  <script>
+    const searchInput = document.getElementById('movieSearchInput');
+    const tableRows = document.querySelectorAll('table tbody tr');
+
+    searchInput.addEventListener('keyup', () => {
+      const searchTerm = searchInput.value.toLowerCase();
+      tableRows.forEach(row => {
+        const titleCell = row.cells[0];
+        if (titleCell.textContent.toLowerCase().includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
