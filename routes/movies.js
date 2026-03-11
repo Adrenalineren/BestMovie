@@ -1,0 +1,109 @@
+const express = require('express');
+const { ObjectId } = require('mongodb');
+const { getCollection } = require('../lib/database');
+const requireLogin = require('../middleware/auth');
+
+const router = express.Router();
+
+router.get('/admin/movie-management', requireLogin, async (req, res) => {
+  const movies = getCollection('movies');
+  const allMovies = await movies.find().toArray();
+  res.render('movie-management', { user: req.session.user, movies: allMovies });
+});
+
+router.get('/admin/movie-management/create', requireLogin, (req, res) => {
+  res.render('movie-create', { user: req.session.user, movie: null });
+});
+
+router.post('/admin/movie-management/create', requireLogin, async (req, res) => {
+  const upload = req.app.get('upload');
+  
+  // Use uploadmiddleware if file is being uploaded
+  upload.single('poster')(req, res, async (err) => {
+    if (err) return res.status(400).send('Error uploading file: ' + err.message);
+    
+    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate} = req.body;
+    const movies = getCollection('movies');
+    
+    // Use uploaded file path or provided URL or default
+    let posterUrl = 'https://via.placeholder.com/200x300?text=No+Image';
+    if (req.file) {
+      posterUrl = '/uploads/posters/' + req.file.filename;
+    } else if (poster) {
+      posterUrl = poster;
+    }
+    
+    // Convert genre to array if it's a string
+    const genreArray = Array.isArray(genre) ? genre : (genre ? [genre] : []);
+    
+    await movies.insertOne({ 
+      title, 
+      poster: posterUrl, 
+      ageRating: ageRating || '',
+      rating: parseFloat(rating) || 0,
+      summary,
+      price: parseFloat(price) || 0,
+      duration: parseInt(duration) || 0,
+      genre: genreArray,
+      releaseDate
+    });
+    res.redirect('/admin/movie-management');
+  });
+});
+
+router.post('/admin/movie-management/:id/delete', requireLogin, async (req, res) => {
+  const movies = getCollection('movies');
+  await movies.deleteOne({ _id: new ObjectId(req.params.id) });
+  res.redirect('/admin/movie-management');
+});
+
+router.get('/admin/movie-management/:id/edit', requireLogin, async (req, res) => {
+  const movieId = req.params.id;
+  const movies = getCollection('movies');
+  const movie = await movies.findOne({ _id: new ObjectId(movieId) });
+  if (!movie) return res.status(404).send('Movie not found');
+  res.render('movie-create', { user: req.session.user, movie });
+});
+
+router.post('/admin/movie-management/:id/edit', requireLogin, async (req, res) => {
+  const upload = req.app.get('upload');
+  
+  upload.single('poster')(req, res, async (err) => {
+    if (err) return res.status(400).send('Error uploading file: ' + err.message);
+    
+    const movieId = req.params.id;
+    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate } = req.body;
+    const movies = getCollection('movies');
+    
+    // Get existing movie to preserve poster if not uploading new one
+    const existingMovie = await movies.findOne({ _id: new ObjectId(movieId) });
+    
+    let posterUrl = existingMovie.poster;
+    if (req.file) {
+      posterUrl = '/uploads/posters/' + req.file.filename;
+    } else if (poster && poster !== existingMovie.poster) {
+      posterUrl = poster;
+    }
+    
+    // convert genre to array if it's a string
+    const genreArray = Array.isArray(genre) ? genre : (genre ? [genre] : []);
+    
+    await movies.updateOne(
+      { _id: new ObjectId(movieId) },
+      { $set: { 
+        title, 
+        poster: posterUrl,
+        ageRating: ageRating || '',
+        rating: parseFloat(rating) || 0,
+        summary,
+        price: parseFloat(price) || 0,
+        duration: parseInt(duration) || 0,
+        genre: genreArray,
+        releaseDate
+      } }
+    );
+    res.redirect('/admin/movie-management');
+  });
+});
+
+module.exports = router;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Best Cinema - Dashboard</title>
+  <title>CineVillage - Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/index.css">
 </head>
@@ -14,13 +14,8 @@
 <div class="dashboard">
   <div class="container-dashboard">
     <h2 style="margin-bottom: 20px;">Management Dashboard</h2>
-
     <div class="dashboard-wrapper">
-
-      <!-- LEFT SIDE PANEL (Quick Actions + Upcoming) -->
       <div class="dashboard-left-panel">
-
-        <!-- Quick Actions -->
         <div class="quick-actions-panel">
           <div class="panel-title">Quick Actions</div>
           <a href="/admin/hall-management" class="action-link">
@@ -33,8 +28,6 @@
             <i class="bi bi-calendar-event"></i> Manage Screenings
           </a>
         </div>
-
-        <!-- Upcoming Screenings (next 5 days) -->
         <div class="upcoming-panel">
           <div class="panel-title">Upcoming — Next 5 Days (<%= upcomingScreeningsCount %>)</div>
           <% if (upcomingScreenings && upcomingScreenings.length > 0) { %>
@@ -56,13 +49,31 @@
             </div>
           <% } %>
         </div>
-
+        <div class="upcoming-panel">
+          <div class="panel-title">Available Halls (<%= availableHallsCount %>)</div>
+          <% if (availableHalls && availableHalls.length > 0) { %>
+            <div class="upcoming-list">
+              <% availableHalls.forEach(hall => { %>
+                <div class="upcoming-list-item">
+                  <div class="upcoming-item-left">
+                    <div class="movie-name"><%= hall.name %></div>
+                    <div class="movie-time"><%= hall.rows * hall.columns %> seats</div>
+                  </div>
+                  <div class="movie-date"><%= hall.type %></div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="no-content">
+              <i class="bi bi-building"></i>
+              <p>No available halls</p>
+            </div>
+          <% } %>
+        </div>
       </div>
 
-      <!-- RIGHT MAIN CONTENT -->
-      <div class="dashboard-main">
 
-        <!-- Total Active Movies -->
+      <div class="dashboard-main">
         <div class="playing-section">
           <div class="section-title">Total Active Movies (<%= playingMoviesCount %>)</div>
           <% if (playingMovies && playingMovies.length > 0) { %>
