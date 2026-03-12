@@ -17,56 +17,77 @@
       <h2 class = "management-title">Hall Management</h2>
       <a href="/admin/hall-management/create" class="btn btn-create-hall">+ Create Hall</a>
     </div>
+    <div class="hall-stats">
+      <div class="hall-stat-card hall-stat-active">
+        <div class="hall-stat-number"><%= halls.filter(h => h.status === 'active').length %></div>
+        <div class="hall-stat-label">Active Halls</div>
+      </div>
+      <div class="hall-stat-card hall-stat-maintenance">
+        <div class="hall-stat-number"><%= halls.filter(h => h.status !== 'active').length %></div>
+        <div class="hall-stat-label">Under Maintenance</div>
+      </div>
+      <div class="hall-stat-card hall-stat-total">
+        <div class="hall-stat-number"><%= halls.length %></div>
+        <div class="hall-stat-label">Total Halls</div>
+      </div>
+    </div>
 
     <% if (halls.length === 0) { %>
       <p>No halls created yet.</p>
     <% } else { %>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Name</th>
-            <th>Rows</th>
-            <th>Columns</th>
-            <th>Seats</th>
-            <th>Wheelchair</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% halls.forEach(hall => { %>
-          <tr>
-            <td><%= hall.type %></td>
-            <td><%= hall.name %></td>
-            <td><%= hall.rows %></td>
-            <td><%= hall.columns %></td>
-            <td><%= (hall.rows * hall.columns) - (hall.wheelchair || 0) %></td>
-            <td><%= hall.wheelchair || 0 %></td>
-            <td>
-              <span class="badge <%= hall.status === 'active' ? 'badge-success' : 'badge-danger' %>">
-                <%= hall.status === 'active' ? 'Active' : 'Under Maintenance' %>
-              </span>
-            </td>
-            <td>
-              <form method="POST" action="/admin/hall-management/<%= hall._id %>/status" style="display:inline">
-                <button class="btn btn-sm btn-warning">
-                  <%= hall.status === 'active' ? 'Set Maintenance' : 'Set Active' %>
-                </button>
-              </form>
-              <form method="GET" action="/admin/hall-management/<%= hall._id %>/edit" style="display:inline">
-                <button class="btn btn-sm btn-edit">Edit</button>
-              </form>
-              <form method="POST" action="/admin/hall-management/<%= hall._id %>/delete" style="display:inline"
-                onsubmit="return confirm('Delete this hall?')">
-                <button class="btn btn-sm btn-danger">Delete</button>
-              </form>
-              <a href="/admin/hall-management/<%= hall._id %>/view" class="btn btn-sm btn-viewhall">View Hall</a>
-            </td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
+      <%
+        const hallTypes = ['Standard', 'Deluxe', 'Gold Class', 'IMAX'];
+      %>
+      <% hallTypes.forEach(type => { %>
+        <% const filtered = halls.filter(h => h.type === type); %>
+        <% if (filtered.length > 0) { %>
+          <h3 class="little-title"><%= type %></h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Rows</th>
+                <th>Columns</th>
+                <th>Seats</th>
+                <th>Wheelchair</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% filtered.forEach(hall => { %>
+              <tr>
+                <td><%= hall.name %></td>
+                <td><%= hall.rows %></td>
+                <td><%= hall.columns %></td>
+                <td><%= (hall.rows * hall.columns) - (hall.wheelchair || 0) %></td>
+                <td><%= hall.wheelchair || 0 %></td>
+                <td>
+                  <span class="badge <%= hall.status === 'active' ? 'badge-success' : 'badge-danger' %>">
+                    <%= hall.status === 'active' ? 'Active' : 'Under Maintenance' %>
+                  </span>
+                </td>
+                <td>
+                  <form method="POST" action="/admin/hall-management/<%= hall._id %>/status" style="display:inline">
+                    <button class="btn btn-sm btn-warning">
+                      <%= hall.status === 'active' ? 'Set Maintenance' : 'Set Active' %>
+                    </button>
+                  </form>
+                  <form method="GET" action="/admin/hall-management/<%= hall._id %>/edit" style="display:inline">
+                    <button class="btn btn-sm btn-edit">Edit</button>
+                  </form>
+                  <form method="POST" action="/admin/hall-management/<%= hall._id %>/delete" style="display:inline"
+                    onsubmit="return confirm('Delete this hall?')">
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                  </form>
+                  <a href="/admin/hall-management/<%= hall._id %>/view" class="btn btn-sm btn-viewhall">View Hall</a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      <% }) %>
     <% } %>
   </div>
 

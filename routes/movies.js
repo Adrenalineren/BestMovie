@@ -22,7 +22,7 @@ router.post('/admin/movie-management/create', requireLogin, async (req, res) => 
   upload.single('poster')(req, res, async (err) => {
     if (err) return res.status(400).send('Error uploading file: ' + err.message);
     
-    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate} = req.body;
+    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate, leavingCinema } = req.body;
     const movies = getCollection('movies');
     
     // Use uploaded file path or provided URL or default
@@ -45,7 +45,8 @@ router.post('/admin/movie-management/create', requireLogin, async (req, res) => 
       price: parseFloat(price) || 0,
       duration: parseInt(duration) || 0,
       genre: genreArray,
-      releaseDate
+      releaseDate,
+      leavingCinema
     });
     res.redirect('/admin/movie-management');
   });
@@ -108,7 +109,7 @@ router.post('/admin/movie-management/:id/edit', requireLogin, async (req, res) =
     if (err) return res.status(400).send('Error uploading file: ' + err.message);
     
     const movieId = req.params.id;
-    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate } = req.body;
+    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate, leavingCinema } = req.body;
     const movies = getCollection('movies');
     
     // Get existing movie to preserve poster if not uploading new one
@@ -135,11 +136,20 @@ router.post('/admin/movie-management/:id/edit', requireLogin, async (req, res) =
         price: parseFloat(price) || 0,
         duration: parseInt(duration) || 0,
         genre: genreArray,
-        releaseDate
+        releaseDate,
+        leavingCinema: leavingCinema || null
       } }
     );
     res.redirect('/admin/movie-management');
   });
+});
+
+router.get('/admin/movie-management/:id/view', requireLogin, async (req, res) => {
+  const movieId = req.params.id;
+  const movies = getCollection('movies');
+  const movie = await movies.findOne({ _id: new ObjectId(movieId) });
+  if (!movie) return res.status(404).send('Movie not found');
+  res.render('movie-view', { user: req.session.user, movie });
 });
 
 module.exports = router;

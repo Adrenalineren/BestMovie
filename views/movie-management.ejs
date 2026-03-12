@@ -64,84 +64,75 @@
     <% if (movies.length === 0) { %>
       <p>No Films added yet.</p>
     <% } else { %>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Poster</th>
-            <th>Genre</th>
-            <th>Duration (minutes)</th>
-            <th>Age Rating</th>
-            <th>Release Date</th>
-            <th>Summary</th>
-            <th>Rating (0-10)</th>
-            <th>Price (S$)</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% movies.forEach(movie => { %>
-          <tr>
-            <td><%= movie.title %></td>
-            <td><img src="<%= movie.poster %>" style="max-width: 80px; max-height: 120px; object-fit: cover;" alt="<%= movie.title %> poster" /></td>
-            <td><%= Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre %></td>
-            <td><%= movie.duration %></td>
-            <td><%= movie.ageRating %></td>
-            <td><%= movie.releaseDate %></td>
-            <td><%= movie.summary %></td>
-            <td><%= movie.rating %></td>
-            <td><%= movie.price %></td>
-            <td>
-              <form method="GET" action="/admin/movie-management/<%= movie._id %>/edit" style="display:inline">
-                <button class="btn btn-sm btn-edit">Edit</button>
-              </form>
-              <form method="POST" action="/admin/movie-management/<%= movie._id %>/delete" style="display:inline"
-                onsubmit="return confirm('Delete this Film?')">
-                <button class="btn btn-sm btn-danger">Delete</button>
-              </form>
-            </td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
+      <div class="playing-movies-grid" id="moviesContainer">
+        <% movies.forEach(movie => { %>
+        <div class="movie-card" data-title="<%= movie.title.toLowerCase() %>" data-genre="<%= Array.isArray(movie.genre) ? movie.genre.join(',').toLowerCase() : movie.genre.toLowerCase() %>" data-age="<%= movie.ageRating %>">
+          <img src="<%= movie.poster %>" alt="<%= movie.title %> poster" class="movie-poster" />
+          <div class="movie-info">
+            <div class="movie-title"><%= movie.title %></div>
+            <div class="movie-details">
+              <div class="detail-row">
+                <span class="detail-label">Genre:</span>
+                <span class="detail-value"><%= Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Duration:</span>
+                <span class="detail-value"><%= movie.duration %> min</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Rating:</span>
+                <span class="detail-value"><%= movie.ageRating %></span>
+              </div>
+              <div class="movie-card-buttons">
+                <a href="/admin/movie-management/<%= movie._id %>/view" class="btn btn-sm btn-view" style="text-decoration: none;">Details</a>
+                <form method="GET" action="/admin/movie-management/<%= movie._id %>/edit" style="flex: 1; min-width: 60px;">
+                  <button class="btn btn-sm btn-edit" style="width: 100%;">Edit</button>
+                </form>
+                <form method="POST" action="/admin/movie-management/<%= movie._id %>/delete" style="flex: 1; min-width: 60px;"
+                  onsubmit="return confirm('Delete this Film?')">
+                  <button class="btn btn-sm btn-danger" style="width: 100%;">Delete</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
     <% } %>
   </div>
 
   <script src="/sidebar-toggle.js"></script>
   <script>
+    // Filter functions
     const searchInput = document.getElementById('movieSearchInput');
     const ageFilter = document.getElementById('ageFilter');
     const genreFilter = document.getElementById('genreFilter');
-    const tableRows = document.querySelectorAll('table tbody tr');
+    const movieCards = document.querySelectorAll('.movie-card');
 
     function applyFilters() {
       const searchTerm = searchInput.value.toLowerCase();
       const selectedAge = ageFilter.value;
       const selectedGenre = genreFilter.value;
 
-      tableRows.forEach(row => {
-        const titleCell = row.cells[0];
-        const genreCell = row.cells[2];
-        const ageCell = row.cells[4];
+      movieCards.forEach(card => {
+        const title = card.dataset.title;
+        const genres = card.dataset.genre.split(',').map(g => g.trim());
+        const age = card.dataset.age;
 
         // Check search
-        const matchesSearch = titleCell.textContent.toLowerCase().includes(searchTerm);
+        const matchesSearch = title.includes(searchTerm);
         
         // Check age filter
-        const matchesAge = selectedAge === '' || ageCell.textContent.trim() === selectedAge;
+        const matchesAge = selectedAge === '' || age === selectedAge;
         
-        // Check genre filter (check if selected genre is in the comma-separated list)
-        let matchesGenre = selectedGenre === '';
-        if (selectedGenre !== '') {
-          const genreList = genreCell.textContent.split(',').map(g => g.trim());
-          matchesGenre = genreList.includes(selectedGenre);
-        }
+        // Check genre filter
+        const matchesGenre = selectedGenre === '' || genres.includes(selectedGenre.toLowerCase());
 
-        // Show row only if all conditions are met
+        // Show card only if all conditions are met
         if (matchesSearch && matchesAge && matchesGenre) {
-          row.style.display = '';
+          card.style.display = '';
         } else {
-          row.style.display = 'none';
+          card.style.display = 'none';
         }
       });
     }

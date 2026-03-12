@@ -78,7 +78,7 @@
 
       <div class="dashboard-main">
         <div class="playing-section">
-          <div class="section-title">Total Active Movies (<%= playingMoviesCount %>)</div>
+          <div class="section-title"> 🟢 Total Active Movies (<%= playingMoviesCount %>)</div>
           <% if (playingMovies && playingMovies.length > 0) { %>
             <div class="playing-movies-grid">
               <% playingMovies.forEach(screening => { %>
@@ -166,7 +166,27 @@
             </div>
           <% } %>
         </div>
-
+        <div class = "Leaving soon">
+          <div class="section-title">Leaving Soon (<%= leavingSoonMoviesCount %>)</div>
+          <% if (leavingSoonMovies && leavingSoonMovies.length > 0) { %>
+            <div class="leaving-soon-list">
+              <% leavingSoonMovies.forEach(movie => { %>
+                <div class="today-screening-item">
+                  <img src="<%= movie.poster %>" alt="<%= movie.title %>" class="today-poster" onerror="this.src='/placeholder.jpg'" />
+                  <div class="leaving-soon-info">
+                    <div class="leaving-soon-title"><%= movie.title %></div>
+                    <div class="leaving-soon-meta"><i class="bi bi-calendar-x"></i> Leaving on <%= movie.leavingCinema ? movie.leavingCinema.split('T')[0] : 'N/A' %></div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="no-content">
+              <i class="bi bi-calendar-check"></i>
+              <p>No movies leaving soon</p>
+            </div>
+          <% } %>
+        </div>
       </div>
     </div>
   </div>

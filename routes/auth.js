@@ -124,6 +124,14 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
     // Get available halls (with status 'active')
     const availableHalls = await halls.find({ status: 'active' }).toArray();
 
+    // Get movies leaving cinema within the next 7 days
+    const in7Days = new Date(today);
+    in7Days.setDate(in7Days.getDate() + 7);
+    const in7DaysStr = in7Days.toISOString().split('T')[0];
+    const leavingSoonMovies = await movies.find({
+      leavingCinema: { $gte: todayDateStr, $lte: in7DaysStr }
+    }).sort({ leavingCinema: 1 }).toArray();
+
     res.render('dashboard', { 
       user: req.session.user, 
       playingMovies: playingMovies,
@@ -135,7 +143,9 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       upcomingScreenings: combinedUpcomingScreenings,
       upcomingScreeningsCount: combinedUpcomingScreenings.length,
       availableHalls: availableHalls,
-      availableHallsCount: availableHalls.length
+      availableHallsCount: availableHalls.length,
+      leavingSoonMovies: leavingSoonMovies,
+      leavingSoonMoviesCount: leavingSoonMovies.length
     });
   } catch (err) {
     console.error('Dashboard error:', err);
@@ -151,6 +161,8 @@ router.get('/admin/dashboard', requireLogin, async (req, res) => {
       upcomingScreeningsCount: 0,
       availableHalls: [],
       availableHallsCount: 0,
+      leavingSoonMovies: [],
+      leavingSoonMoviesCount: 0,
       error: err.message
     });
   }
