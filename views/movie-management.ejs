@@ -72,15 +72,15 @@
             <div class="movie-title"><%= movie.title %></div>
             <div class="movie-details">
               <div class="detail-row">
-                <span class="detail-label">Genre:</span>
+                <span class="detail-label">Genre:&nbsp;</span>
                 <span class="detail-value"><%= Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre %></span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Duration:</span>
+                <span class="detail-label">Duration:&nbsp;</span>
                 <span class="detail-value"><%= movie.duration %> min</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Rating:</span>
+                <span class="detail-label">Rating:&nbsp;</span>
                 <span class="detail-value"><%= movie.ageRating %></span>
               </div>
               <div class="movie-card-buttons">

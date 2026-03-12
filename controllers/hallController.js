@@ -32,6 +32,54 @@ const postHallCreate = async (req, res) => {
   res.redirect('/admin/hall-management');
 };
 
+const getHallScreeningsCheck = async (req, res) => {
+  const hallId = req.params.id;
+  const halls = getCollection('halls');
+  const screenings = getCollection('screenings');
+  const movies = getCollection('movies');
+
+  try {
+    const hall = await halls.findOne({ _id: new ObjectId(hallId) });
+    if (!hall) return res.status(404).json({ error: 'Hall not found' });
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // upcoming screenings in this hall (date >= today)
+    const upcomingScreenings = await screenings.find({
+      hallId: new ObjectId(hallId),
+      date: { $gte: todayStr }
+    }).sort({ date: 1, screeningTime: 1 }).toArray();
+
+    if (upcomingScreenings.length === 0) {
+      return res.json({ hasUpcoming: false });
+    }
+
+    // Populate movie details
+    const populatedScreenings = await Promise.all(
+      upcomingScreenings.map(async (screening) => {
+        const movie = await movies.findOne({ _id: screening.movieId });
+        return {
+          ...screening,
+          movieTitle: movie?.title || 'Unknown Movie'
+        };
+      })
+    );
+
+    res.json({
+      hasUpcoming: true,
+      hallName: hall.name,
+      screenings: populatedScreenings.map(s => ({
+        movieTitle: s.movieTitle,
+        date: s.date,
+        time: s.screeningTime
+      }))
+    });
+  } catch (err) {
+    console.error('Error checking screenings:', err);
+    res.status(500).json({ error: 'Error checking screenings' });
+  }
+};
+
 const postHallStatus = async (req, res) => {
   const halls = getCollection('halls');
   const hall = await halls.findOne({ _id: new ObjectId(req.params.id) });
@@ -78,4 +126,4 @@ const postHallEdit = async (req, res) => {
   res.redirect('/admin/hall-management');
 };
 
-module.exports = { getHallManagement, getHallCreate, postHallCreate, postHallStatus, postHallDelete, getHallView, getHallEdit, postHallEdit };
+module.exports = { getHallManagement, getHallCreate, postHallCreate, getHallScreeningsCheck, postHallStatus, postHallDelete, getHallView, getHallEdit, postHallEdit };

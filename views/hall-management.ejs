@@ -68,11 +68,9 @@
                   </span>
                 </td>
                 <td>
-                  <form method="POST" action="/admin/hall-management/<%= hall._id %>/status" style="display:inline">
-                    <button class="btn btn-sm btn-warning">
-                      <%= hall.status === 'active' ? 'Set Maintenance' : 'Set Active' %>
-                    </button>
-                  </form>
+                  <button class="btn btn-sm btn-warning" onclick="toggleHallStatus('<%= hall._id %>', '<%= hall.status %>', '<%= hall.name %>')">
+                    <%= hall.status === 'active' ? 'Set Maintenance' : 'Set Active' %>
+                  </button>
                   <form method="GET" action="/admin/hall-management/<%= hall._id %>/edit" style="display:inline">
                     <button class="btn btn-sm btn-edit">Edit</button>
                   </form>
@@ -91,6 +89,92 @@
     <% } %>
   </div>
 
+  <!-- Screening Warning Modal -->
+  <div id="screeningWarningModal" class="screening-warning-modal">
+    <div class="screening-warning-content">
+      <div class="screening-warning-header">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <h2>Upcoming Screenings</h2>
+      </div>
+      <p style="color: #666; margin-bottom: 15px;">
+        <strong id="warningHallName"></strong> has scheduled screenings. Please reassign or cancel them before setting this hall to maintenance.
+      </p>
+      <div class="screening-list" id="screeningList"></div>
+      <div class="screening-warning-actions">
+        <button class="btn-cancel-warning" onclick="closeScreeningWarning()">Cancel</button>
+        <button class="btn-manage-screenings" onclick="redirectToScreenings()">
+          <i class="bi bi-pencil"></i> Manage Screenings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden form to submit status change -->
+  <form id="statusForm" method="POST" style="display: none;"></form>
+
   <script src="/sidebar-toggle.js"></script>
+  <script>
+    let pendingStatusChange = null;
+
+    async function toggleHallStatus(hallId, currentStatus, hallName) {
+      // Only check for screenings if changing TO maintenance (active -> maintenance)
+      if (currentStatus === 'active') {
+        try {
+          const response = await fetch(`/admin/hall-management/${hallId}/check-screenings`);
+          const data = await response.json();
+
+          if (data.hasUpcoming) {
+            // Show warning modal
+            showScreeningWarning(hallName, data.screenings, hallId);
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking screenings:', err);
+        }
+      }
+
+      // No upcoming screenings or setting back to active - proceed with status change
+      submitStatusChange(hallId);
+    }
+
+    function showScreeningWarning(hallName, screenings, hallId) {
+      document.getElementById('warningHallName').textContent = hallName;
+      
+      const screeningList = document.getElementById('screeningList');
+      screeningList.innerHTML = screenings.map(s => `
+        <div class="screening-item">
+          <div class="screening-movie">${s.movieTitle}</div>
+          <div class="screening-meta">${s.date} at ${s.time}</div>
+        </div>
+      `).join('');
+
+      pendingStatusChange = hallId;
+      document.getElementById('screeningWarningModal').style.display = 'block';
+    }
+
+    function closeScreeningWarning() {
+      document.getElementById('screeningWarningModal').style.display = 'none';
+      pendingStatusChange = null;
+    }
+
+    function redirectToScreenings() {
+      window.location.href = '/admin/screening-management';
+    }
+
+    function submitStatusChange(hallId) {
+      const form = document.getElementById('statusForm');
+      form.method = 'POST';
+      form.action = `/admin/hall-management/${hallId}/status`;
+      form.submit();
+    }
+
+    // Close modal on outside click
+    window.onclick = function(event) {
+      const modal = document.getElementById('screeningWarningModal');
+      if (event.target === modal) {
+        closeScreeningWarning();
+      }
+    }
+  </script>
 </body>
 </html>
