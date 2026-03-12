@@ -1,88 +1,16 @@
-const express = require('express');
-const { ObjectId } = require('mongodb');
-const { getCollection } = require('../lib/database');
+﻿const express = require('express');
 const requireLogin = require('../middleware/auth');
+const hallController = require('../controllers/hallController');
 
 const router = express.Router();
 
-router.get('/admin/hall-management', requireLogin, async (req, res) => {
-  const halls = getCollection('halls');
-  const allHalls = await halls.find().toArray();
-  res.render('hall-management', { user: req.session.user, halls: allHalls });
-});
-
-router.get('/admin/hall-management/create', requireLogin, (req, res) => {
-  res.render('hall-create', { user: req.session.user, hall: null, error: null });
-});
-
-router.post('/admin/hall-management/create', requireLogin, async (req, res) => {
-  const { name, type, rows, columns, seat, wheelchair } = req.body;
-  const halls = getCollection('halls');
-  
-  // Check if hall name already exists
-  const existingHall = await halls.findOne({ name: name });
-  if (existingHall) {
-    return res.render('hall-create', { user: req.session.user, hall: null, error: 'A hall with this name already exists' });
-  }
-  
-  await halls.insertOne({ 
-    name, 
-    type, 
-    rows: parseInt(rows), 
-    columns: parseInt(columns), 
-    seat: seat ? JSON.parse(seat) : [], 
-    wheelchair: parseInt(wheelchair) || 0,
-    status: 'active' });
-  res.redirect('/admin/hall-management');
-});
-
-router.post('/admin/hall-management/:id/status', requireLogin, async (req, res) => {
-  const halls = getCollection('halls');
-  const hall = await halls.findOne({ _id: new ObjectId(req.params.id) });
-  const newStatus = hall.status === 'active' ? 'maintenance' : 'active';
-  await halls.updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status: newStatus } });
-  res.redirect('/admin/hall-management');
-});
-
-router.post('/admin/hall-management/:id/delete', requireLogin, async (req, res) => {
-  const halls = getCollection('halls');
-  await halls.deleteOne({ _id: new ObjectId(req.params.id) });
-  res.redirect('/admin/hall-management');
-});
-
-router.get('/admin/hall-management/:id/view', requireLogin, async (req, res) => {
-  const hallId = req.params.id;
-  const halls = getCollection('halls');
-  const hall = await halls.findOne({ _id: new ObjectId(hallId) });
-  if (!hall) return res.status(404).send('Hall not found');
-  res.render('hall-view', { user: req.session.user, hall });
-});
-
-router.get('/admin/hall-management/:id/edit', requireLogin, async (req, res) => {
-  const hallId = req.params.id;
-  const halls = getCollection('halls');
-  const hall = await halls.findOne({ _id: new ObjectId(hallId) });
-  if (!hall) return res.status(404).send('Hall not found');
-  res.render('hall-create', { user: req.session.user, hall, error: null });
-});
-
-router.post('/admin/hall-management/:id/edit', requireLogin, async (req, res) => {
-  const hallId = req.params.id;
-  const { name, type, rows, columns, seat, wheelchair } = req.body;
-  const halls = getCollection('halls');
-  
-  // Check if another hall with this name already exists
-  const existingHall = await halls.findOne({ name: name, _id: { $ne: new ObjectId(hallId) } });
-  if (existingHall) {
-    const hall = await halls.findOne({ _id: new ObjectId(hallId) });
-    return res.render('hall-create', { user: req.session.user, hall, error: 'A hall with this name already exists' });
-  }
-  
-  await halls.updateOne(
-    { _id: new ObjectId(hallId) },
-    { $set: { name, type, rows: parseInt(rows), columns: parseInt(columns), seat: seat ? JSON.parse(seat) : [], wheelchair: parseInt(wheelchair) || 0 } }
-  );
-  res.redirect('/admin/hall-management');
-});
+router.get('/admin/hall-management', requireLogin, hallController.getHallManagement);
+router.get('/admin/hall-management/create', requireLogin, hallController.getHallCreate);
+router.post('/admin/hall-management/create', requireLogin, hallController.postHallCreate);
+router.post('/admin/hall-management/:id/status', requireLogin, hallController.postHallStatus);
+router.post('/admin/hall-management/:id/delete', requireLogin, hallController.postHallDelete);
+router.get('/admin/hall-management/:id/view', requireLogin, hallController.getHallView);
+router.get('/admin/hall-management/:id/edit', requireLogin, hallController.getHallEdit);
+router.post('/admin/hall-management/:id/edit', requireLogin, hallController.postHallEdit);
 
 module.exports = router;

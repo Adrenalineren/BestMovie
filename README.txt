@@ -50,7 +50,7 @@ EXTRA FEATURES
    not in the list to be selected for screenings.
 
 3. Real-time Screening Status - each screening is automatically labelled
-   Upcoming, Now Showing, or Completed based on current time.
+   Upcoming, Now Showing, Completed, or Leaving Cinemas based on current time.
 
 4. Extended Dashboard Stats - stat cards showing total halls in use
 
