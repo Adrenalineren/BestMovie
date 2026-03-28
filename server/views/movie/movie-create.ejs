@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Film</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <%- include('../navbar') %>
+  <%- include('../sidebar') %>
+
+  <div class="container">
+    <h2><%= movie ? 'Edit Film' : 'Add Film' %></h2>
+    <form id="movieForm" enctype="multipart/form-data" method="POST">
+      <div class="form-group">
+        <label>Film Title</label>
+        <input type="text" id="title" name="title" placeholder="e.g. The Matrix" class="form-control" value="<%= movie ? movie.title : '' %>" />
+      </div>
+      <div class="form-group">
+        <label>Poster</label>
+        <input type="file" id="poster" name="poster" accept="image/*" class="form-control" />
+        <% if (movie && movie.poster && !movie.poster.includes('placeholder')) { %>
+          <p style="margin-top: 10px; font-size: 0.9em;">Current: <img src="<%= movie.poster %>" style="max-width: 100px; max-height: 100px;" /></p>
+        <% } %>
+      </div>
+      <div class="form-group">
+        <label>Film Genre (Select one or more)</label>
+        <select id="genre" name="genre" class="form-control" multiple required>
+          <option value="Drama" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Drama') ? 'selected' : '' %>>Drama</option>
+          <option value="Romance" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Romance') ? 'selected' : '' %>>Romance</option>
+          <option value="Comedy" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Comedy') ? 'selected' : '' %>>Comedy</option>
+          <option value="Sci-Fi" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Sci-Fi') ? 'selected' : '' %>>Sci-Fi</option>
+          <option value="Action" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Action') ? 'selected' : '' %>>Action</option>
+          <option value="Horror" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Horror') ? 'selected' : '' %>>Horror</option>
+          <option value="Thriller" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Thriller') ? 'selected' : '' %>>Thriller</option>
+          <option value="Documentary" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Documentary') ? 'selected' : '' %>>Documentary</option>
+          <option value="Autobiography" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Autobiography') ? 'selected' : '' %>>Autobiography</option>
+          <option value="Coming of Age" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Coming of Age') ? 'selected' : '' %>>Coming of Age</option>
+          <option value="Sports" <%= movie && Array.isArray(movie.genre) && movie.genre.includes('Sports') ? 'selected' : '' %>>Sports</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Duration (minutes)</label>
+        <input type="number" id="duration" name="duration" min="1" class="form-control" value="<%= movie ? movie.duration : '' %>" />
+      </div>
+      <div class="form-group">
+        <label>Age Rating</label>
+        <select id="ageRating" name="ageRating" class="form-control" required>
+          <option value="">Select a rating</option>
+          <option value="G" <%= movie && movie.ageRating === 'G' ? 'selected' : '' %>>G</option>
+          <option value="PG" <%= movie && movie.ageRating === 'PG' ? 'selected' : '' %>>PG</option>
+          <option value="PG13" <%= movie && movie.ageRating === 'PG13' ? 'selected' : '' %>>PG-13</option>
+          <option value="NC16" <%= movie && movie.ageRating === 'NC16' ? 'selected' : '' %>>NC-16</option>
+          <option value="M18" <%= movie && movie.ageRating === 'M18' ? 'selected' : '' %>>M18</option>
+          <option value="R21" <%= movie && movie.ageRating === 'R21' ? 'selected' : '' %>>R21</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Release Date</label>
+        <input type="date" id="releaseDate" name="releaseDate" class="form-control" value="<%= movie && movie.releaseDate ? movie.releaseDate.split('T')[0] : '' %>" />
+      </div>
+      <div class="form-group">
+        <label>Leaving Cinema Date</label>
+        <input type="date" id="leavingCinema" name="leavingCinema" class="form-control" value="<%= movie && movie.leavingCinema ? movie.leavingCinema.split('T')[0] : '' %>" />
+      </div>
+        <div class="form-group">
+            <label>Summary</label>
+            <textarea id="summary" name="summary" placeholder="Brief description of the film" class="form-control"><%= movie ? movie.summary : '' %></textarea>
+        </div>
+        <div class="form-group">
+            <label>Rating (0-10)</label>
+            <input type="number" id="rating" name="rating" min="0" max="10" step="0.1" class="form-control" value="<%= movie ? movie.rating : '' %>" />
+        </div>
+        <div class="form-group">
+            <label>Price ($)</label>
+            <input type="number" id="price" name="price" min="0" step="0.01" class="form-control" value="<%= movie ? movie.price : '' %>" />
+        </div>
+        <input type="hidden" id="movieId" name="movieId" value="<%= movie ? movie._id : '' %>" />
+    </form>
+    <button onclick="submitForm()" class="btn btn-primary"><%= movie ? 'Update Film' : 'Add Film' %></button>
+  </div>
+
+  <script>
+    function submitForm() {
+      const form = document.getElementById('movieForm');
+      const movieId = document.getElementById('movieId').value;
+      const url = movieId ? `/admin/movie/movie-management/${movieId}/edit` : '/admin/movie/movie-management/create';
+      
+      form.action = url;
+      form.method = 'POST';
+      form.submit();
+    }
+  </script>
+</body>

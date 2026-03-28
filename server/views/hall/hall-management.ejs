@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Cinema - Hall Management</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <%- include('../navbar') %>
+  <%- include('../sidebar') %>
+
+  <div class="container">
+    <% if (success) { %>
+      <div style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px;">
+        <i class="bi bi-check-circle"></i> 
+        <%= success %>
+      </div>
+    <% } %>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 class = "management-title">Hall Management</h2>
+      <a href="/admin/hall/hall-management/create" class="btn btn-create-hall">+ Create Hall</a>
+    </div>
+    <div class="hall-stats">
+      <div class="hall-stat-card hall-stat-active">
+        <div class="hall-stat-number"><%= halls.filter(h => h.status === 'active').length %></div>
+        <div class="hall-stat-label">Active Halls</div>
+      </div>
+      <div class="hall-stat-card hall-stat-maintenance">
+        <div class="hall-stat-number"><%= halls.filter(h => h.status !== 'active').length %></div>
+        <div class="hall-stat-label">Under Maintenance</div>
+      </div>
+      <div class="hall-stat-card hall-stat-total">
+        <div class="hall-stat-number"><%= halls.length %></div>
+        <div class="hall-stat-label">Total Halls</div>
+      </div>
+    </div>
+
+    <% if (halls.length === 0) { %>
+      <p>No halls created yet.</p>
+    <% } else { %>
+      <%
+        const hallTypes = ['Standard', 'Deluxe', 'Gold Class', 'IMAX'];
+      %>
+      <% hallTypes.forEach(type => { %>
+        <% const filtered = halls.filter(h => h.type === type); %>
+        <% if (filtered.length > 0) { %>
+          <h3 class="little-title"><%= type %></h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Rows</th>
+                <th>Columns</th>
+                <th>Seats</th>
+                <th>Wheelchair</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% filtered.forEach(hall => { %>
+              <tr>
+                <td><%= hall.name %></td>
+                <td><%= hall.rows %></td>
+                <td><%= hall.columns %></td>
+                <td><%= (hall.rows * hall.columns) - (hall.wheelchair || 0) %></td>
+                <td><%= hall.wheelchair || 0 %></td>
+                <td>
+                  <span class="badge <%= hall.status === 'active' ? 'badge-success' : 'badge-danger' %>">
+                    <%= hall.status === 'active' ? 'Active' : 'Under Maintenance' %>
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-warning" onclick="toggleHallStatus('<%= hall._id %>', '<%= hall.status %>', '<%= hall.name %>')">
+                    <%= hall.status === 'active' ? 'Set Maintenance' : 'Set Active' %>
+                  </button>
+                  <form method="GET" action="/admin/hall/hall-management/<%= hall._id %>/edit" style="display:inline">
+                    <button class="btn btn-sm btn-edit">Edit</button>
+                  </form>
+                  <form method="POST" action="/admin/hall/hall-management/<%= hall._id %>/delete" style="display:inline"
+                    onsubmit="return confirm('Delete this hall?')">
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                  </form>
+                  <a href="/admin/hall/hall-management/<%= hall._id %>/view" class="btn btn-sm btn-viewhall">View Hall</a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <!-- Screening Warning Modal -->
+  <div id="screeningWarningModal" class="screening-warning-modal">
+    <div class="screening-warning-content">
+      <div class="screening-warning-header">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <h2>Upcoming Screenings</h2>
+      </div>
+      <p style="color: #666; margin-bottom: 15px;">
+        <strong id="warningHallName"></strong> has scheduled screenings. Please reassign or cancel them before setting this hall to maintenance.
+      </p>
+      <div class="screening-list" id="screeningList"></div>
+      <div class="screening-warning-actions">
+        <button class="btn-cancel-warning" onclick="closeScreeningWarning()">Cancel</button>
+        <button class="btn-manage-screenings" onclick="redirectToScreenings()">
+          <i class="bi bi-pencil"></i> Manage Screenings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden form to submit status change -->
+  <form id="statusForm" method="POST" style="display: none;"></form>
+
+  <script src="/sidebar-toggle.js"></script>
+  <script>
+    let pendingStatusChange = null;
+
+    async function toggleHallStatus(hallId, currentStatus, hallName) {
+      // Only check for screenings if changing TO maintenance (active -> maintenance)
+      if (currentStatus === 'active') {
+        try {
+          const response = await fetch(`/admin/hall/hall-management/${hallId}/check-screenings`);
+          const data = await response.json();
+
+          if (data.hasUpcoming) {
+            // Show warning modal
+            showScreeningWarning(hallName, data.screenings, hallId);
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking screenings:', err);
+        }
+      }
+
+      // No upcoming screenings or setting back to active - proceed with status change
+      submitStatusChange(hallId);
+    }
+
+    function showScreeningWarning(hallName, screenings, hallId) {
+      document.getElementById('warningHallName').textContent = hallName;
+      
+      const screeningList = document.getElementById('screeningList');
+      screeningList.innerHTML = screenings.map(s => `
+        <div class="screening-item">
+          <div class="screening-movie">${s.movieTitle}</div>
+          <div class="screening-meta">${s.date} at ${s.time}</div>
+        </div>
+      `).join('');
+
+      pendingStatusChange = hallId;
+      document.getElementById('screeningWarningModal').style.display = 'block';
+    }
+
+    function closeScreeningWarning() {
+      document.getElementById('screeningWarningModal').style.display = 'none';
+      pendingStatusChange = null;
+    }
+
+    function redirectToScreenings() {
+      window.location.href = '/admin/screening-management';
+    }
+
+    function submitStatusChange(hallId) {
+      const form = document.getElementById('statusForm');
+      form.method = 'POST';
+      form.action = `/admin/hall/hall-management/${hallId}/status`;
+      form.submit();
+    }
+
+    // Close modal on outside click
+    window.onclick = function(event) {
+      const modal = document.getElementById('screeningWarningModal');
+      if (event.target === modal) {
+        closeScreeningWarning();
+      }
+    }
+  </script>
+</body>
+</html>

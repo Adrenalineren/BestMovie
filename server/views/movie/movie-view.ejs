@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Cinema - <%= movie.title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <%- include('../navbar') %>
+  <%- include('../sidebar') %>
+
+  <div class="container">
+    <a href="/admin/movie/movie-management" class="btn btn-backtohalls">← Back</a>
+
+    <div class="movie-view-container">
+      <div class="movie-view-poster">
+        <img src="<%= movie.poster %>" alt="<%= movie.title %> poster" class="movie-view-image" />
+      </div>
+
+      <div class="movie-view-details">
+        <h1 class="movie-view-title"><%= movie.title %></h1>
+
+        <div class="movie-view-info">
+          <div class="info-group">
+            <div class="info-row">
+              <span class="info-label">Genre:</span>
+              <span class="info-value"><%= Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre %></span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Duration:</span>
+              <span class="info-value"><%= movie.duration %> minutes</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Age Rating:</span>
+              <span class="info-value"><%= movie.ageRating %></span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Rating Score:</span>
+              <span class="info-value"><%= movie.rating %>/10</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Price:</span>
+              <span class="info-value">S$<%= movie.price %></span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Release Date:</span>
+              <span class="info-value"><%= movie.releaseDate %></span>
+            </div>
+          </div>
+
+          <div class="info-group">
+            <h3 class="info-section-title">Summary</h3>
+            <p class="movie-summary"><%= movie.summary %></p>
+          </div>
+
+          <div class="movie-view-actions">
+            <form method="GET" action="/admin/movie/movie-management/<%= movie._id %>/edit" style="display:inline">
+              <button class="btn btn-sm btn-edit">Edit Film</button>
+            </form>
+            <form method="POST" action="/admin/movie/movie-management/<%= movie._id %>/delete" style="display:inline"
+              onsubmit="return confirm('Delete this Film?')">
+              <button class="btn btn-sm btn-danger">Delete Film</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/sidebar-toggle.js"></script>
+</body>
+</html>
