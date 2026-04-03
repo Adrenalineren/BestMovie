@@ -15,6 +15,7 @@ const screeningRoutes = require('./routes/screenings');
 const apiMoviesRoutes = require('./routes/apiMovies');
 const apiHallsRoutes = require('./routes/apiHalls');
 const apiScreeningsRoutes = require('./routes/apiScreenings');
+const apiBookingsRoutes = require('./routes/apiBookings');
 
 const app = express();
 const port = 3000;
@@ -39,7 +40,16 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }));
-app.use(cors());
+
+// CORS configuration to allow credentials from React dev server
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 
 
 // View engine setup
@@ -53,10 +63,16 @@ app.set('upload', upload);
 // Routes
 app.get('/', (req, res) => res.redirect('/login'));
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
+
 // API routes (public, no login required - for React client)
 app.use('/api/movies', apiMoviesRoutes);
 app.use('/api/halls', apiHallsRoutes);
 app.use('/api/screenings', apiScreeningsRoutes);
+app.use('/api/bookings', apiBookingsRoutes);
 
 // Auth routes (includes login, logout, dashboard)
 app.use('/', authRoutes);

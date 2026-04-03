@@ -42,7 +42,7 @@
       </div>
       <div class="form-group">
         <label>Number of Wheelchair Seats (placed at end of last row)</label>
-        <input type="number" id="wheelchair" min="0" class="form-control" value="<%= hall ? (hall.wheelchair || 0) : '0' %>" />
+        <input type="number" id="wheelchair" min="0" class="form-control" value="<%= hall ? (hall.wheelchairCount !== undefined ? hall.wheelchairCount : (hall.wheelchair || 0)) : '0' %>" />
       </div>
       <button onclick="generateDiagram()" class="btn btn-primary"><%= hall ? 'Update Diagram' : 'Generate Diagram' %></button>
     </div>
@@ -76,7 +76,24 @@
   <script src="/sidebar-toggle.js"></script>
   <script src="/hall-create.js"></script>
   <script>
-    existingSeats = <%= hall && hall.seat ? JSON.stringify(hall.seat) : '[]' %>;
+    console.log('=== PAGE LOAD ===');
+    console.log('hall object exists:', <%= hall ? 'true' : 'false' %>);
+    <% if (hall) { %>
+      console.log('Hall name:', '<%= hall.name %>');
+      existingSeats = <%- JSON.stringify(hall.seat || []) %>;
+      console.log('Hall seat array from server:', existingSeats);
+      console.log('existingSeats length:', existingSeats.length);
+      if (existingSeats.length > 0) {
+        console.log('First seat:', existingSeats[0]);
+        const deletedCount = existingSeats.filter(s => s.type === 'deleted').length;
+        const wheelchairCount = existingSeats.filter(s => s.type === 'wheelchair').length;
+        console.log('Deleted seats in existingSeats:', deletedCount);
+        console.log('Wheelchair seats in existingSeats:', wheelchairCount);
+      }
+    <% } else { %>
+      existingSeats = [];
+      console.log('No hall - existingSeats is empty');
+    <% } %>
   </script>
 </body>
 </html>

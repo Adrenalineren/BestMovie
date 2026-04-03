@@ -66,8 +66,8 @@
                 <td><%= hall.name %></td>
                 <td><%= hall.rows %></td>
                 <td><%= hall.columns %></td>
-                <td><%= (hall.rows * hall.columns) - (hall.wheelchair || 0) %></td>
-                <td><%= hall.wheelchair || 0 %></td>
+                <td><%= hall.seat && hall.seat.length > 0 ? hall.seat.filter(s => s.type === 'normal').length : ((hall.rows * hall.columns) - (hall.wheelchair || 0)) %></td>
+                <td><%= hall.seat && hall.seat.length > 0 ? hall.seat.filter(s => s.type === 'wheelchair').length : (hall.wheelchair || 0) %></td>
                 <td>
                   <span class="badge <%= hall.status === 'active' ? 'badge-success' : 'badge-danger' %>">
                     <%= hall.status === 'active' ? 'Active' : 'Under Maintenance' %>

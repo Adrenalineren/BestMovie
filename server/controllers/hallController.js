@@ -17,20 +17,36 @@ const postHallCreate = async (req, res) => {
   const { name, type, rows, columns, seat, wheelchair } = req.body;
   const halls = getCollection('halls');
 
+  console.log('=== POST HALL CREATE ===');
+  console.log('Received data:');
+  console.log('  name:', name);
+  console.log('  type:', type);
+  console.log('  rows:', rows);
+  console.log('  columns:', columns);
+  console.log('  wheelchair:', wheelchair);
+  console.log('  seat (raw):', seat);
+  console.log('  seat type:', typeof seat);
+  console.log('  seat length:', seat ? seat.length : 'null');
+
   const existingHall = await halls.findOne({ name });
   if (existingHall) {
     return res.render('hall/hall-create', { user: req.session.user, hall: null, error: 'A hall with this name already exists', success: undefined });
   }
+
+  const parsedSeats = seat ? JSON.parse(seat) : [];
+  console.log('  parsed seats:', parsedSeats);
+  console.log('  parsed seats count:', parsedSeats.length);
 
   await halls.insertOne({
     name,
     type,
     rows: parseInt(rows),
     columns: parseInt(columns),
-    seat: seat ? JSON.parse(seat) : [],
+    seat: parsedSeats,
     wheelchair: parseInt(wheelchair) || 0,
     status: 'active'
   });
+  console.log('=== HALL CREATED SUCCESSFULLY ===');
   req.session.successMessage = `Hall "${name}" created successfully!`;
   res.redirect('/admin/hall/hall-management');
 };
@@ -108,7 +124,35 @@ const getHallEdit = async (req, res) => {
   const halls = getCollection('halls');
   const hall = await halls.findOne({ _id: new ObjectId(req.params.id) });
   if (!hall) return res.status(404).send('Hall not found');
-  res.render('hall/hall-create', { user: req.session.user, hall, error: null, success: undefined });
+  
+  // Calculate actual wheelchair count from seat array (not legacy field)
+  const wheelchairCount = hall.seat ? hall.seat.filter(s => s.type === 'wheelchair').length : 0;
+  
+  console.log('=== GET HALL EDIT ===');
+  console.log('Hall loaded from DB:');
+  console.log('  name:', hall.name);
+  console.log('  rows:', hall.rows);
+  console.log('  columns:', hall.columns);
+  console.log('  wheelchair (legacy field):', hall.wheelchair);
+  console.log('  wheelchair (calculated from seat array):', wheelchairCount);
+  console.log('  seat array exists:', hall.seat ? 'YES' : 'NO');
+  console.log('  seat count:', hall.seat ? hall.seat.length : 'null/undefined');
+  console.log('  seat data sample:', hall.seat ? JSON.stringify(hall.seat.slice(0, 3)) : 'none');
+  
+  // Ensure seat array is included in response
+  const hallData = {
+    _id: hall._id,
+    name: hall.name,
+    type: hall.type,
+    rows: hall.rows,
+    columns: hall.columns,
+    wheelchair: hall.wheelchair,
+    wheelchairCount: wheelchairCount,
+    seat: hall.seat || []  // Explicitly include seat array
+  };
+  
+  console.log('Rendering template with seat array length:', hallData.seat.length);
+  res.render('hall/hall-create', { user: req.session.user, hall: hallData, error: null, success: undefined });
 };
 
 const postHallEdit = async (req, res) => {
@@ -122,10 +166,16 @@ const postHallEdit = async (req, res) => {
     return res.render('hall/hall-create', { user: req.session.user, hall, error: 'A hall with this name already exists', success: undefined });
   }
 
+  const parsedSeats = seat ? JSON.parse(seat) : [];
+  console.log('  parsed seats:', parsedSeats);
+  console.log('  parsed seats count:', parsedSeats.length);
+  console.log('  wheelchair seat types:', parsedSeats.filter(s => s.type === 'wheelchair').length);
+
   await halls.updateOne(
     { _id: new ObjectId(hallId) },
-    { $set: { name, type, rows: parseInt(rows), columns: parseInt(columns), seat: seat ? JSON.parse(seat) : [], wheelchair: parseInt(wheelchair) || 0 } }
+    { $set: { name, type, rows: parseInt(rows), columns: parseInt(columns), seat: parsedSeats, wheelchair: parseInt(wheelchair) || 0 } }
   );
+  console.log('=== HALL UPDATED SUCCESSFULLY ===');
   req.session.successMessage = `Hall "${name}" updated successfully!`;
   res.redirect('/admin/hall/hall-management');
 };

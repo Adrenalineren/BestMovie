@@ -51,8 +51,21 @@
             </div>
           </div>
 
-          <div class="info-group">
-            <h3 class="info-section-title">Summary</h3>
+          <div class="info-group">              <div class="info-row">
+                <span class="info-label">Director:</span>
+                <span class="info-value"><%= movie.director || 'N/A' %></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Cast:</span>
+                <span class="info-value"><%= Array.isArray(movie.cast) ? movie.cast.join(', ') : (movie.cast || 'N/A') %></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Language:</span>
+                <span class="info-value"><%= movie.language || 'N/A' %></span>
+              </div>
+            </div>
+
+            <div class="info-group">            <h3 class="info-section-title">Summary</h3>
             <p class="movie-summary"><%= movie.summary %></p>
           </div>
 

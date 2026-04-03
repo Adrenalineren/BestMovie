@@ -1,24 +1,28 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import HomePage from './pages/HomePage';
+import MovieDetail from './pages/MovieDetail';
+import Checkout from './pages/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.jsx</code> and save to reload.
-        </p>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </header>
-    </div>
-
+    <BrowserRouter>
+      <div className='wrapper'>
+        <Navbar />
+        <div className='content'>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/movies/:id" element={<MovieDetail />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/confirmation" element={<OrderConfirmation />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
+    </BrowserRouter>
   )
 }
 

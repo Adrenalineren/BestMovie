@@ -1,0 +1,250 @@
+.checkout-container {
+    padding: 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.checkout-section {
+    margin-bottom: 20px;
+    padding: 20px 0;
+    text-align: left;
+}
+
+.section-title {
+    color: #ffd700;
+    margin: 0 0 0px 0;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+/* Price Table */
+.price-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.price-table thead {
+    background: #1a1a1a;
+    border-bottom: 2px solid #ffd700;
+}
+
+.price-table th {
+    color: #ffd700;
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+.price-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #444;
+    color: #ccc;
+}
+
+.price-table tbody tr:hover {
+    background: #333;
+}
+
+.price-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.price-table tbody tr:last-child td {
+    border-bottom: 2px solid #ffd700;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+.grand-total-section {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4d 100%);
+    color: #000;
+    text-align: right;
+    border: none;
+    padding: 20px !important;
+    border-radius: 8px;
+}
+
+.grand-total-section h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #000;
+}
+
+/* Payment Methods */
+.payment-instruction {
+    color: #ccc;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.payment-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.payment-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.payment-card {
+    padding: 20px;
+    background: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.payment-option input[type="radio"]:checked + .payment-card {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.payment-option:hover .payment-card {
+    border-color: #ffd700;
+}
+
+.payment-option:hover .payment-card svg {
+    color: #ffd700;
+}
+
+.payment-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.payment-card svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+    color: #ccc;
+    transition: color 0.3s ease;
+}
+
+.payment-card p {
+    margin: 0;
+    font-size: 12px;
+    color: #ccc;
+    font-weight: 500;
+}
+
+.payment-option input[type="radio"]:checked + .payment-card p {
+    color: #ffd700;
+}
+
+.payment-option input[type="radio"]:checked + .payment-card svg {
+    color: #ffd700;
+}
+
+/* Actions */
+.checkout-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 40px;
+}
+
+.btn-back,
+.btn-proceed {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-back {
+    background: #666;
+    color: #fff;
+}
+
+.btn-back:hover {
+    background: #888;
+}
+
+.btn-proceed {
+    background: #ffd700;
+    color: #000;
+    flex: 1;
+    max-width: 300px;
+}
+
+.btn-proceed:hover:not(:disabled) {
+    background: #ffed4d;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+.btn-proceed:disabled {
+    background: #999;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.checkout-error {
+    padding: 40px;
+    text-align: center;
+    background: #1a1a1a;
+}
+
+.checkout-error h1 {
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+
+.checkout-error p {
+    color: #ccc;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .checkout-container {
+        padding: 20px;
+    }
+
+    .checkout-section {
+        padding: 15px;
+    }
+
+    .price-table {
+        font-size: 12px;
+    }
+
+    .price-table th,
+    .price-table td {
+        padding: 10px 8px;
+    }
+
+    .payment-methods {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+
+    .checkout-actions {
+        flex-direction: column;
+    }
+
+    .btn-proceed {
+        max-width: none;
+    }
+}

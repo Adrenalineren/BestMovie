@@ -17,7 +17,8 @@ const getAllScreeningsJSON = async (req, res) => {
         return {
           ...screening,
           movieTitle: movie ? movie.title : 'Unknown Movie',
-          hallName: hall ? hall.name : 'Unknown Hall'
+          hallName: hall ? hall.name : 'Unknown Hall',
+          hallType: hall ? hall.type : 'Standard'
         };
       })
     );
@@ -34,17 +35,37 @@ const getScreeningsByMovieJSON = async (req, res) => {
     const screenings = getCollection('screenings');
     const halls = getCollection('halls');
 
+    // Get current date and time
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; // HH:mm
+
     const movieScreenings = await screenings
       .find({ movieId: new ObjectId(req.params.movieId) })
       .sort({ date: 1, screeningTime: 1 })
       .toArray();
 
+    // Filter out past screenings
+    const futureScreenings = movieScreenings.filter(screening => {
+      // Keep screenings for future dates
+      if (screening.date > currentDate) {
+        return true;
+      }
+      // For today's date, only keep screenings that haven't started yet
+      if (screening.date === currentDate) {
+        return screening.screeningTime > currentTime;
+      }
+      // Exclude past screenings
+      return false;
+    });
+
     const populatedScreenings = await Promise.all(
-      movieScreenings.map(async (screening) => {
+      futureScreenings.map(async (screening) => {
         const hall = await halls.findOne({ _id: new ObjectId(screening.hallId) });
         return {
           ...screening,
-          hallName: hall ? hall.name : 'Unknown Hall'
+          hallName: hall ? hall.name : 'Unknown Hall',
+          hallType: hall ? hall.type : 'Standard'
         };
       })
     );
@@ -74,7 +95,8 @@ const getScreeningByIdJSON = async (req, res) => {
     const populatedScreening = {
       ...screening,
       movieTitle: movie ? movie.title : 'Unknown Movie',
-      hallName: hall ? hall.name : 'Unknown Hall'
+      hallName: hall ? hall.name : 'Unknown Hall',
+      hallType: hall ? hall.type : 'Standard'
     };
 
     res.status(200).json(populatedScreening);

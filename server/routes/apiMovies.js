@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { 
   getAllMoviesJSON, 
-  getMovieByIdJSON 
+  getMovieByIdJSON
 } = require('../handlers/apiMovieHandlers');
 
-// GET /api/movies - Get all movies
+// GET /api/movies - Get movies currently in cinemas
 router.get('/', getAllMoviesJSON);
 
 // GET /api/movies/:id - Get single movie by ID

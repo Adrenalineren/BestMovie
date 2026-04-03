@@ -33,7 +33,7 @@
           <% if (upcomingScreenings && upcomingScreenings.length > 0) { %>
             <div class="upcoming-list">
               <% upcomingScreenings.forEach(screening => { %>
-                <a href="/admin/screening-management/<%= screening._id %>/edit" style="text-decoration: none; color: inherit;">
+                <a href="/admin/screening/screening-management/<%= screening._id %>/edit" style="text-decoration: none; color: inherit;">
                   <div class="upcoming-list-item" style="cursor: pointer;">
                     <div class="upcoming-item-left">
                        <img src="<%= screening.poster %>" alt="<%= screening.movieTitle %>" class="upcoming-poster" onerror="this.src='/placeholder.jpg'" />
@@ -117,7 +117,7 @@
           <% if (upcomingTodayScreenings && upcomingTodayScreenings.length > 0) { %>
             <div class="upcoming-today-list">
               <% upcomingTodayScreenings.forEach(screening => { %>
-                <a href="/admin/screening-management/<%= screening._id %>/edit" style="text-decoration: none; color: inherit;">
+                <a href="/admin/screening/screening-management/<%= screening._id %>/edit" style="text-decoration: none; color: inherit;">
                   <div class="upcoming-today-item" style="cursor: pointer;">
                     <img src="<%= screening.poster %>" alt="<%= screening.movieTitle %>" class="upcoming-poster" onerror="this.src='/placeholder.jpg'" />
                     <div class="upcoming-today-info">

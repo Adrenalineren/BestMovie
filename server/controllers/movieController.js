@@ -19,7 +19,7 @@ const postMovieCreate = (req, res) => {
   upload.single('poster')(req, res, async (err) => {
     if (err) return res.status(400).send('Error uploading file: ' + err.message);
 
-    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate, leavingCinema } = req.body;
+    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate, leavingCinema, director, cast, language } = req.body;
     const movies = getCollection('movies');
 
     let posterUrl = 'https://via.placeholder.com/200x300?text=No+Image';
@@ -30,6 +30,7 @@ const postMovieCreate = (req, res) => {
     }
 
     const genreArray = Array.isArray(genre) ? genre : (genre ? [genre] : []);
+    const castArray = cast ? cast.split(',').map(c => c.trim()).filter(c => c) : [];
 
     // All fields are required 
     if (!title || !summary || !releaseDate || !posterUrl || !price || !duration || genreArray.length === 0 || !ageRating || !rating) {
@@ -62,7 +63,10 @@ const postMovieCreate = (req, res) => {
       duration: parseInt(duration) || 0,
       genre: genreArray,
       releaseDate,
-      leavingCinema
+      leavingCinema: leavingCinema || null,
+      director: director || '',
+      cast: castArray,
+      language: language || ''
     });
     req.session.successMessage = 'Movie created successfully!';
     res.redirect('/admin/movie/movie-management');
@@ -123,7 +127,7 @@ const postMovieEdit = (req, res) => {
     if (err) return res.status(400).send('Error uploading file: ' + err.message);
 
     const movieId = req.params.id;
-    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate, leavingCinema } = req.body;
+    const { title, poster, ageRating, rating, summary, price, duration, genre, releaseDate, leavingCinema, director, cast, language } = req.body;
     const movies = getCollection('movies');
 
     const existingMovie = await movies.findOne({ _id: new ObjectId(movieId) });
@@ -136,6 +140,7 @@ const postMovieEdit = (req, res) => {
     }
 
     const genreArray = Array.isArray(genre) ? genre : (genre ? [genre] : []);
+    const castArray = cast ? cast.split(',').map(c => c.trim()).filter(c => c) : [];
 
     await movies.updateOne(
       { _id: new ObjectId(movieId) },
@@ -150,7 +155,10 @@ const postMovieEdit = (req, res) => {
           duration: parseInt(duration) || 0,
           genre: genreArray,
           releaseDate,
-          leavingCinema: leavingCinema || null
+          leavingCinema: leavingCinema || null,
+          director: director || '',
+          cast: castArray,
+          language: language || ''
         }
       }
     );

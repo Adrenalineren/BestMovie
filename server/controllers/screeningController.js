@@ -97,7 +97,8 @@ const postScreeningCreate = async (req, res) => {
       date,
       screeningTime,
       endTime,
-      status: 'Available'
+      status: 'Available',
+      bookedSeats: []
     });
     req.session.successMessage = `Screening of ${movie.title} created successfully!`;
     res.redirect('/admin/screening/screening-management');
