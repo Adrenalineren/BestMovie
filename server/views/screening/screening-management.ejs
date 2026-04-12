@@ -95,6 +95,7 @@
                   onsubmit="return confirm('Delete this screening?')">
                   <button class="btn btn-sm btn-danger">Delete</button>
                 </form>
+                <button class="btn btn-sm btn-viewhall" onclick="viewSeats(this)" data-screening-id="<%= screening._id %>" data-movie-title="<%= screening.movieTitle %>" data-hall-name="<%= screening.hallName %>" data-hall-id="<%= screening.hallId %>">View Seats</button>
               </td>
             </tr>
             <% }) %>
@@ -142,6 +143,19 @@
   </div>
 
   <script src="/sidebar-toggle.js"></script>
+
+  <!-- Seat Viewer Modal -->
+  <div id="seatViewerModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeSeatViewer()">&times;</span>
+      <div style="padding: 20px;">
+        <h2 id="seatViewerTitle"></h2>
+        <div id="seatViewerContent">
+          <p>Loading seating diagram...</p>
+        </div>
+      </div>
+    </div>
+  </div>
   <script>
     const searchInput = document.getElementById('screeningSearchInput');
     const upcomingRows = document.querySelectorAll('table tbody tr');
@@ -161,6 +175,151 @@
         }
       });
     });
+
+    // Seat Viewer Functions
+    let seatViewerRefreshInterval;
+
+    async function viewSeats(button) {
+      const screeningId = button.getAttribute('data-screening-id');
+      const movieTitle = button.getAttribute('data-movie-title');
+      const hallName = button.getAttribute('data-hall-name');
+      const hallId = button.getAttribute('data-hall-id');
+
+      document.getElementById('seatViewerTitle').textContent = `${movieTitle} - ${hallName}`;
+      document.getElementById('seatViewerContent').innerHTML = '<p>Loading seating diagram...</p>';
+      document.getElementById('seatViewerModal').style.display = 'flex';
+
+      // Clear any existing refresh interval
+      if (seatViewerRefreshInterval) clearInterval(seatViewerRefreshInterval);
+
+      // Load seats immediately and then every 3 seconds
+      await loadSeatsData(screeningId, hallId);
+      seatViewerRefreshInterval = setInterval(() => loadSeatsData(screeningId, hallId), 3000);
+    }
+
+    function closeSeatViewer() {
+      document.getElementById('seatViewerModal').style.display = 'none';
+      if (seatViewerRefreshInterval) clearInterval(seatViewerRefreshInterval);
+    }
+
+    async function loadSeatsData(screeningId, hallId) {
+      try {
+        // Fetch hall details
+        const hallRes = await fetch(`/api/halls/${hallId}`);
+        const hall = await hallRes.json();
+
+        // Fetch booked seats
+        const bookingsRes = await fetch(`/api/bookings/screening/${screeningId}`);
+        const bookingsData = await bookingsRes.json();
+        const bookedSeats = bookingsData.bookedSeats || [];
+
+        // Generate seats if not in hall.seat array
+        let seats = hall.seat && hall.seat.length > 0 ? hall.seat : [];
+        
+        if (seats.length === 0 && hall.rows && hall.columns) {
+          const generatedSeats = [];
+          for (let r = 0; r < hall.rows; r++) {
+            const rowLabel = String.fromCharCode(65 + r);
+            for (let c = 1; c <= hall.columns; c++) {
+              const wheelchairCount = hall.wheelchair || 0;
+              const isWheelchair = (r === hall.rows - 1) && (c > hall.columns - wheelchairCount);
+              generatedSeats.push({
+                row: rowLabel,
+                col: c,
+                type: isWheelchair ? 'wheelchair' : 'normal'
+              });
+            }
+          }
+          seats = generatedSeats;
+        }
+
+        // Group seats by row
+        const rows = {};
+        seats.forEach((seat, index) => {
+          if (!rows[seat.row]) rows[seat.row] = [];
+          rows[seat.row].push({ ...seat, index });
+        });
+
+        // Render seating grid
+        let html = '<div class="screen">SCREEN</div>';
+        html += '<div class="seating-grid">';
+
+        Object.keys(rows).sort().forEach(rowLetter => {
+          html += '<div class="seat-row">';
+          html += `<div class="row-label">${rowLetter}</div>`;
+
+          rows[rowLetter].forEach(({ col, type, index }) => {
+            const seatLabel = `${rowLetter}${col}`;
+            const isBooked = bookedSeats.includes(seatLabel);
+            const isDisabled = type === 'deleted';
+            const isWheelchair = type === 'wheelchair';
+
+            let seatClass = 'seat';
+            if (isDisabled) seatClass += ' disabled';
+            else if (isWheelchair) seatClass += ' wheelchair';
+            else if (isBooked) seatClass += ' booked';
+
+            const displayText = isWheelchair ? '♿' : isDisabled ? '✕' : col;
+            const title = isDisabled ? 'Disabled' : isWheelchair ? 'Wheelchair accessible' : isBooked ? `Booked - ${seatLabel}` : seatLabel;
+
+            html += `<button class="${seatClass}" title="${title}" disabled>${displayText}</button>`;
+          });
+
+          html += '</div>';
+        });
+
+        html += '</div>';
+
+        // Add legend
+        html += `
+          <div class="seat-legend">
+            <div class="legend-item">
+              <div class="legend-seat available"></div>
+              <span>Available</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-seat booked"></div>
+              <span>Booked</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-seat wheelchair"></div>
+              <span>Wheelchair</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-seat disabled"></div>
+              <span>Disabled</span>
+            </div>
+          </div>
+        `;
+
+        // Add booking stats
+        const totalCapacity = seats.length;
+        const availableSeats = totalCapacity - bookedSeats.length;
+        const occupancyPercent = ((bookedSeats.length / totalCapacity) * 100).toFixed(1);
+
+        html += `
+          <div class="booking-stats">
+            <p><strong>Total Capacity:</strong> ${totalCapacity} seats</p>
+            <p><strong>Booked:</strong> ${bookedSeats.length} seats</p>
+            <p><strong>Available:</strong> ${availableSeats} seats</p>
+            <p><strong>Occupancy:</strong> ${occupancyPercent}%</p>
+          </div>
+        `;
+
+        document.getElementById('seatViewerContent').innerHTML = html;
+      } catch (error) {
+        console.error('Error loading seats:', error);
+        document.getElementById('seatViewerContent').innerHTML = `<p style="color: #f44336;">Error loading seating diagram: ${error.message}</p>`;
+      }
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('seatViewerModal');
+      if (event.target === modal) {
+        closeSeatViewer();
+      }
+    };
   </script>
 </body>
 </html>

@@ -37,3 +37,42 @@
   background: white;
   color: #7a2c2c;
 }
+
+.navbar-customer {
+  font-size: 14px;
+  color: #e8d4d4;
+  margin-right: 10px;
+}
+
+.logout-btn {
+  background: #c33;
+  border: 1px solid #c33;
+}
+
+.logout-btn:hover {
+  background: #a00;
+  border-color: #a00;
+  color: white;
+}
+
+.login-btn {
+  background: transparent;
+  border: 1px solid white;
+}
+
+.login-btn:hover {
+  background: white;
+  color: #7a2c2c;
+}
+
+.register-btn {
+  background: #e50914;
+  border: 1px solid #e50914;
+  color: white;
+  font-weight: 600;
+}
+
+.register-btn:hover {
+  background: #b20710;
+  border-color: #b20710;
+}

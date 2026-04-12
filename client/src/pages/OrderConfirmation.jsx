@@ -32,22 +32,90 @@ export default function OrderConfirmation() {
         'paynow': 'PayNow'
     }[paymentMethod] || paymentMethod;
 
+        const handleDownloadReceipt = () => {
+                const receiptDate = new Date(createdAt).toLocaleString('en-SG');
+                const subtotal = (seats.length * moviePrice).toFixed(2);
+                const receiptHtml = `<!doctype html> <!-- Generated receipt for booking ${bookingId} -->
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>CineVillage Receipt ${bookingId}</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #f4f4f4; padding: 24px; }
+        .receipt { max-width: 420px; margin: 0 auto; background: #fff; padding: 20px; border: 1px solid #ddd; }
+        .center { text-align: center; }
+        .line { border-top: 1px dashed #999; margin: 10px 0; }
+        .row { display: flex; justify-content: space-between; gap: 16px; margin: 4px 0; }
+        .muted { color: #666; }
+        .total { font-weight: 700; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <div class="center"><h2 style="margin: 0;">CineVillage</h2></div>
+        <div class="center muted" style="margin-top: 4px;">Official Receipt</div>
+        <div class="line"></div>
+        <div class="row"><span>Confirmation</span><span>${bookingId}</span></div>
+        <div class="row"><span>Date of Purchase</span><span>${receiptDate}</span></div>
+        <div class="row"><span>Movie</span><span>${movieTitle}</span></div>
+        <div class="row"><span>Hall</span><span>${hallName}</span></div>
+        <div class="row"><span>Seats</span><span>${seats.join(', ')}</span></div>
+        <div class="line"></div>
+        <div class="row"><span>Ticket Price (${seats.length} x S$${moviePrice})</span><span>S$${subtotal}</span></div>
+        <div class="row"><span>Convenience Fee</span><span>S$2.00</span></div>
+        <div class="row total"><span>Total</span><span>S$${totalAmount.toFixed(2)}</span></div>
+        <div class="line"></div>
+        <div class="row"><span>Payment Method</span><span>${paymentMethodDisplay}</span></div>
+    </div>
+</body>
+</html>`;
+
+                const blob = new Blob([receiptHtml], { type: 'text/html;charset=utf-8' }); // turns HTML string into file-like object - downloadable object (Blob is raw file data in memory)
+                const url = URL.createObjectURL(blob); // creates a temporary URL that points to the Blob object in memory - allows us to download it without needing a server endpoint
+                const anchor = document.createElement('a'); // creates an invisible download link and clicks it to trigger the download
+                anchor.href = url; 
+                anchor.download = `CineVillage-Receipt-${bookingId}.html`; // sets the filename for the downloaded receipt
+                document.body.appendChild(anchor); // trigger download by simulating a click on the anchor element
+                anchor.click(); // cleanup - remove the anchor element and revoke the object URL to free up memory
+                anchor.remove(); // URL.revokeObjectURL is used to release the memory allocated for the Blob URL after the download is triggered, preventing memory leaks in the browser
+                URL.revokeObjectURL(url); // revoke the object URL to free up memory
+        };
+
     return (
         <div className="confirmation-page">
             <div className="confirmation-container">
-                {/* Success Header */}
-                <div className="success-header">
-                    <div className="success-icon">✓</div>
-                    <h1>Booking Confirmed!</h1>
-                    <p className="confirmation-id">Confirmation ID: <strong>{bookingId}</strong></p>
+                <div className="confirmation-actions">
+                    <button className="btn-home btn-back-home" onClick={() => navigate('/')}>
+                        ← Back to Home
+                    </button>
+                    <button className="btn-download" onClick={handleDownloadReceipt}>
+                        Download Receipt
+                    </button>
                 </div>
 
-                {/* Order Summary Card */}
-                <div className="order-summary-card">
-                    <h2>Order Summary</h2>
-                    
-                    {/* Movie & Hall Info */}
+                <div className="success-header">
+                    <div className="success-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" fill="currentColor" className="bi bi-check" viewBox="0 0 16 16">
+                            <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z" />
+                        </svg>
+                    </div>
+                    <h1>Booking Confirmed</h1>
+                </div>
+
+                <div className="order-summary-card receipt-card">
+                    <div className="receipt-header-row">
+                        <div>
+                            <p className="receipt-brand">CineVillage</p>
+                            <p className="receipt-subtitle">Official Receipt</p>
+                        </div>
+                        <p className="confirmation-id">#{bookingId}</p>
+                    </div>
+
                     <div className="order-section">
+                        <div className="order-row">
+                            <span className="label">Date of Purchase:</span>
+                            <span className="value">{formattedDate}</span>
+                        </div>
                         <div className="order-row">
                             <span className="label">Movie:</span>
                             <span className="value">{movieTitle}</span>
@@ -62,7 +130,6 @@ export default function OrderConfirmation() {
                         </div>
                     </div>
 
-                    {/* Price Breakdown */}
                     <div className="order-section">
                         <h3 className="breakdown-title">Price Breakdown</h3>
                         <table className="price-breakdown">
@@ -83,43 +150,16 @@ export default function OrderConfirmation() {
                         </table>
                     </div>
 
-                    {/* Payment Info */}
                     <div className="order-section">
                         <div className="order-row">
                             <span className="label">Payment Method:</span>
                             <span className="value">{paymentMethodDisplay}</span>
                         </div>
-                        <div className="order-row">
-                            <span className="label">Order Date & Time:</span>
-                            <span className="value">{formattedDate}</span>
-                        </div>
                     </div>
 
-                    {/* Status Badge */}
                     <div className="order-status">
                         <span className="status-badge confirmed">Confirmed</span>
                     </div>
-                </div>
-
-                {/* Important Notes */}
-                <div className="important-notes">
-                    <h3>Important Information</h3>
-                    <ul>
-                        <li>Please arrive 15 minutes before the screening time</li>
-                        <li>Your tickets will be emailed to your registered email address</li>
-                        <li>You can view your booking details anytime using your confirmation ID</li>
-                        <li>For cancellations or changes, contact us at least 2 hours before screening</li>
-                    </ul>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="confirmation-actions">
-                    <button className="btn-home" onClick={() => navigate('/')}>
-                        Back to Home
-                    </button>
-                    <button className="btn-view-ticket" onClick={() => alert('Ticket download feature coming soon!')}>
-                        Download Ticket
-                    </button>
                 </div>
             </div>
         </div>

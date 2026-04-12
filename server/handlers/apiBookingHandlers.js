@@ -24,105 +24,120 @@ const getBookingsByScreeningJSON = async (req, res) => {
 
 // POST /api/bookings - Create a new booking with race condition prevention
 const createBookingJSON = async (req, res) => {
-  console.log('BookingJSON called with body:', req.body);
+  console.log('Booking request:', req.body);
   
   try {
-    const { screeningId, seatsToBook, paymentMethod, movieTitle, hallName, moviePrice } = req.body;
-    
-    console.log('Received data:', { screeningId, seatsToBook, paymentMethod, movieTitle, hallName, moviePrice });
+    const { screeningId, seatsToBook, paymentMethod, customerName, customerEmail, movieTitle, hallName, moviePrice } = req.body;
     
     // Validate input
     if (!screeningId || !seatsToBook || !Array.isArray(seatsToBook) || seatsToBook.length === 0) {
-      console.log('Validation failed');
       return res.status(400).json({ 
         success: false, 
         error: 'Invalid booking data' 
       });
     }
 
-    console.log('Validation passed, getting collections...');
+    if (!customerName || !customerEmail) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Customer name and email are required' 
+      });
+    }
+
     const screenings = getCollection('screenings');
     const bookings = getCollection('bookings');
+    const seatReservations = getCollection('seatReservations');
 
-    // First, check if screening exists and initialize bookedSeats if missing
-    console.log('Checking screening...');
+    // Verify screening exists
     const screening = await screenings.findOne({ _id: new ObjectId(screeningId) });
-    
     if (!screening) {
-      console.log('Screening not found:', screeningId);
       return res.status(404).json({ 
         success: false, 
         error: 'Screening not found' 
       });
     }
 
-    // Initialize bookedSeats if it doesn't exist
-    if (!screening.bookedSeats || !Array.isArray(screening.bookedSeats)) {
-      console.log('Initializing bookedSeats for screening...');
-      await screenings.updateOne(
-        { _id: new ObjectId(screeningId) },
-        { $set: { bookedSeats: [] } }
-      );
-      // Re-fetch to ensure we have the latest state
-      const updatedScreening = await screenings.findOne({ _id: new ObjectId(screeningId) });
-      console.log('Updated screening bookedSeats:', updatedScreening.bookedSeats);
-    } else {
-      console.log('Current bookedSeats:', screening.bookedSeats);
+    const screeningObjectId = new ObjectId(screeningId);
+    const reservationToken = new ObjectId().toString();
+
+    console.log('Attempting strict seat reservation:', seatsToBook);
+
+    try {
+      const reservationDocs = seatsToBook.map((seatLabel) => ({
+        screeningId: screeningObjectId,
+        seatLabel,
+        reservationToken,
+        status: 'reserved',
+        createdAt: new Date()
+      }));
+
+      // DB-enforced uniqueness on (screeningId, seatLabel) prevents race-condition double booking.
+      await seatReservations.insertMany(reservationDocs, { ordered: true });
+    } catch (reservationError) {
+      if (reservationError && reservationError.code === 11000) {
+        // Roll back any seats inserted before duplicate key was hit.
+        await seatReservations.deleteMany({ reservationToken });
+
+        const conflicting = await seatReservations.find({
+          screeningId: screeningObjectId,
+          seatLabel: { $in: seatsToBook }
+        }).toArray();
+
+        const conflictingSeats = conflicting.map((r) => r.seatLabel);
+
+        return res.status(409).json({
+          success: false,
+          error: 'One or more seats are no longer available. Please select different seats.',
+          conflictingSeats
+        });
+      }
+
+      throw reservationError;
     }
 
-    // ATOMIC OPERATION: Check if seats are available AND reserve them in one operation
-    // This prevents race conditions where two users book the same seat simultaneously
-    console.log('Attempting atomic update - checking if these seats are available:', seatsToBook);
-    console.log('Query will look for screening where bookedSeats does NOT include:', seatsToBook);
-    const result = await screenings.findOneAndUpdate(
-      {
-        _id: new ObjectId(screeningId),
-        // Ensure NONE of the seats to book are already in bookedSeats
-        bookedSeats: { $nin: seatsToBook }
-      },
-      {
-        $push: {
-          bookedSeats: { $each: seatsToBook }
-        }
-      },
-      { returnDocument: 'after' }
-    );
+    console.log('Seats reserved, creating booking...');
 
-    // If no document was updated, it means seats were already booked by someone else
-    if (!result.value) {
-      console.log('Update failed - checking why...');
-      const currentScreening = await screenings.findOne({ _id: new ObjectId(screeningId) });
-      console.log('Current bookedSeats in database:', currentScreening?.bookedSeats);
-      console.log('Seats we tried to book:', seatsToBook);
-      const conflictingSeats = seatsToBook.filter(seat => currentScreening?.bookedSeats?.includes(seat));
-      console.log('Conflicting seats:', conflictingSeats);
-      
-      return res.status(409).json({ 
-        success: false, 
-        error: 'One or more seats are no longer available. Please select different seats.',
-        statusCode: 409,
-        conflictingSeats: conflictingSeats
-      });
-    }
+    // Get customerId from JWT token (req.customer is set by requireAuthJWT middleware)
+    const customerId = req.customer?.customerId ? new ObjectId(req.customer.customerId) : null;
 
-    console.log('Seats reserved, creating booking record...');
-    // Seats are now locked! Create the booking record
+    // ATOMIC: Create the booking record
     const booking = {
-      screeningId: new ObjectId(screeningId),
+      screeningId: screeningObjectId,
       seats: seatsToBook,
+      customerId: customerId, // Store the authenticated customer ID
+      customerName,
+      customerEmail,
       movieTitle,
       hallName,
       moviePrice: parseFloat(moviePrice),
       paymentMethod,
       totalAmount: seatsToBook.length * parseFloat(moviePrice) + 2.00,
       status: 'confirmed',
-      createdAt: new Date(),
-      userId: req.session?.user?._id || null // If user is logged in, associate booking
+      createdAt: new Date()
     };
 
-    const bookingResult = await bookings.insertOne(booking);
+    let bookingResult;
+    try {
+      bookingResult = await bookings.insertOne(booking);
+    } catch (insertError) {
+      // Roll back seat reservations if booking write fails.
+      await seatReservations.deleteMany({ reservationToken });
+      throw insertError;
+    }
 
-    console.log('✅ Booking created with ID:', bookingResult.insertedId);
+    await seatReservations.updateMany(
+      { reservationToken },
+      {
+        $set: {
+          status: 'confirmed',
+          bookingId: bookingResult.insertedId,
+          confirmedAt: new Date()
+        }
+      }
+    );
+
+    console.log('Booking created:', bookingResult.insertedId);
+    
     return res.status(201).json({ 
       success: true, 
       message: 'Booking confirmed!',
@@ -131,10 +146,10 @@ const createBookingJSON = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Booking error:', error);
+    console.error('Booking error:', error);
     return res.status(500).json({ 
       success: false, 
-      error: 'Server error while processing booking: ' + error.message 
+      error: 'Server error: ' + error.message 
     });
   }
 };

@@ -7,7 +7,13 @@ function timeToMinutes(timeStr) {
 }
 
 const getLogin = (req, res) => {
-  if (req.session.user) return res.redirect('/admin/dashboard');
+  // Always check if user is already logged in
+  if (req.session.user) {
+    // Redirect to dashboard if already authenticated
+    return res.redirect('/admin/dashboard');
+  }
+  
+  // If not logged in, render login page
   res.render('login', { error: null });
 };
 
@@ -38,6 +44,11 @@ const logout = (req, res) => {
 
 const getDashboard = async (req, res) => {
   try {
+    // Prevent caching of the dashboard page
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     const movies = getCollection('movies');
     const screenings = getCollection('screenings');
     const halls = getCollection('halls');

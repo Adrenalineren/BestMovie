@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const multer = require('multer');
 const path = require('path');
-const {connectToDatabase} = require('./lib/database');
+const { connectToDatabase, ensureDatabaseIndexes } = require('./lib/database');
 const requireLogin = require('./middleware/auth');
 const cors = require('cors');
 
@@ -12,10 +12,13 @@ const authRoutes = require('./routes/auth');
 const hallRoutes = require('./routes/halls');
 const movieRoutes = require('./routes/movies');
 const screeningRoutes = require('./routes/screenings');
+const bookingRoutes = require('./routes/bookings');
 const apiMoviesRoutes = require('./routes/apiMovies');
 const apiHallsRoutes = require('./routes/apiHalls');
 const apiScreeningsRoutes = require('./routes/apiScreenings');
 const apiBookingsRoutes = require('./routes/apiBookings');
+const apiAuthRoutes = require('./routes/apiAuth');
+const apiAdminRoutes = require('./routes/apiAdmin');
 
 const app = express();
 const port = 3000;
@@ -73,6 +76,8 @@ app.use('/api/movies', apiMoviesRoutes);
 app.use('/api/halls', apiHallsRoutes);
 app.use('/api/screenings', apiScreeningsRoutes);
 app.use('/api/bookings', apiBookingsRoutes);
+app.use('/api/auth', apiAuthRoutes);
+app.use('/api/admin', apiAdminRoutes);
 
 // Auth routes (includes login, logout, dashboard)
 app.use('/', authRoutes);
@@ -81,10 +86,12 @@ app.use('/', authRoutes);
 app.use('/', requireLogin, hallRoutes);
 app.use('/', requireLogin, movieRoutes);
 app.use('/', requireLogin, screeningRoutes);
+app.use('/admin/bookings', requireLogin, bookingRoutes);
 
 // Start server after connecting to database
 connectToDatabase()
-  .then(() => {
+  .then(async () => {
+    await ensureDatabaseIndexes();
     console.log('Connected to database');
     app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
   })

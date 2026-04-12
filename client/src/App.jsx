@@ -6,6 +6,8 @@ import HomePage from './pages/HomePage';
 import MovieDetail from './pages/MovieDetail';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
+import MyTickets from './pages/MyTickets';
+import BookingDeets from './pages/BookingDeets';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
             <Route path="/movies/:id" element={<MovieDetail />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/confirmation" element={<OrderConfirmation />} />
+            <Route path="/my-tickets" element={<MyTickets />} />
+            <Route path="/booking-details" element={<BookingDeets />} />
           </Routes>
         </div>
         <Footer />

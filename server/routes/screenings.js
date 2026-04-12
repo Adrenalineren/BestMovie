@@ -11,4 +11,9 @@ router.get('/admin/screening/screening-management/:id/edit', requireLogin, scree
 router.post('/admin/screening/screening-management/:id/edit', requireLogin, screeningController.postScreeningEdit);
 router.post('/admin/screening/screening-management/:id/delete', requireLogin, screeningController.postScreeningDelete);
 
+// New route: View seat visualization for a screening
+router.get('/admin/screening/:screeningId/seats', requireLogin, (req, res) => {
+  res.render('screening-seats', { screeningId: req.params.screeningId, user: req.session.user });
+});
+
 module.exports = router;

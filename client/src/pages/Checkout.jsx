@@ -1,11 +1,29 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../assets/Checkout.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AuthModal from '../components/AuthModal';
 
 export default function Checkout() {
     const location = useLocation();
     const navigate = useNavigate();
     const [selectedPayment, setSelectedPayment] = useState(null);
+    const [customerName, setCustomerName] = useState('');
+    const [customerEmail, setCustomerEmail] = useState('');
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [authModalMode, setAuthModalMode] = useState('login');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    // Check if user is logged in
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        const customer = localStorage.getItem('customer');
+        if (token && customer) {
+            setIsAuthenticated(true);
+            const customerData = JSON.parse(customer);
+            setCustomerName(customerData.name || '');
+            setCustomerEmail(customerData.email || '');
+        }
+    }, []);
 
     // If no seat data, user came here by accident - send them back
     if (!location.state) {
@@ -39,47 +57,85 @@ export default function Checkout() {
         }
     ];
 
+    const handleClearTestData = async () => {
+        if (!window.confirm('Clear all test booking data? This will allow you to book again.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/bookings/debug/clear-all');
+            const data = await response.json();
+            alert(`${data.message}\n\nDeleted bookings: ${data.deletedCount}\n${data.verification}`);
+            window.location.reload();
+        } catch (error) {
+            alert(`Error clearing data: ${error.message}`);
+        }
+    };
+
     const handleProceed = async () => {
+        // Check if user is logged in
+        if (!isAuthenticated) {
+            setShowAuthModal(true);
+            return;
+        }
+
         if (!selectedPayment) {
             alert('Please select a payment method');
             return;
         }
 
+        if (!customerName.trim()) {
+            alert('Please enter your name');
+            return;
+        }
+
+        if (!customerEmail.trim() || !customerEmail.includes('@')) {
+            alert('Please enter a valid email address');
+            return;
+        }
+
         try {
-            console.log('📤 Sending booking request with:', {
+            console.log('Sending booking request with:', {
                 screeningId: screening._id,
                 seatsToBook: selectedSeats,
                 paymentMethod: selectedPayment,
+                customerName,
+                customerEmail,
                 movieTitle,
                 hallName: hall.name,
                 moviePrice
             });
 
-            // Send booking to backend
+            // Get JWT token from localStorage
+            const accessToken = localStorage.getItem('accessToken');
+
+            // Send booking to backend with JWT token
             const response = await fetch('http://localhost:3000/api/bookings', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
                 },
                 body: JSON.stringify({
                     screeningId: screening._id,
                     seatsToBook: selectedSeats,
                     paymentMethod: selectedPayment,
+                    customerName,
+                    customerEmail,
                     movieTitle,
                     hallName: hall.name,
                     moviePrice
                 }),
-                credentials: 'include' // Include session cookies if user is logged in
+                credentials: 'include'
             });
 
-            console.log('📥 Response status:', response.status);
+            console.log('Response status:', response.status);
 
             const data = await response.json();
-            console.log('📦 Response data:', data);
+            console.log('Response data:', data);
 
             if (!response.ok || !data.success) {
-                // Seats no longer available (race condition detected)
-                alert(`❌ ${data.error || 'Booking failed'}\n\nPlease go back and select different seats.`);
+                alert(`${data.error || 'Booking failed'}\n\nPlease go back and select different seats.`);
                 navigate(-1);
                 return;
             }
@@ -98,7 +154,20 @@ export default function Checkout() {
     };
     
     return (
-        <div className="checkout-container">
+        <>
+            <AuthModal 
+                isOpen={showAuthModal}
+                onClose={() => setShowAuthModal(false)}
+                mode={authModalMode}
+                onLoginSuccess={() => {
+                    const customer = JSON.parse(localStorage.getItem('customer'));
+                    setCustomerName(customer.name);
+                    setCustomerEmail(customer.email);
+                    setIsAuthenticated(true);
+                }}
+                onModeChange={(newMode) => setAuthModalMode(newMode)}
+            />
+            <div className="checkout-container">
             {/* Ticket Price Section */}
             <div className="checkout-section">
                 <h2 className="section-title">Checkout summary</h2>
@@ -185,5 +254,6 @@ export default function Checkout() {
                 </button>
             </div>
         </div>
+        </>
     );
 }

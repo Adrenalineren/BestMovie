@@ -9,6 +9,7 @@ import M18 from '../assets/images/M18.svg'
 import R21 from '../assets/images/R21.svg'
 import MovieCarousel from '../components/MovieCarousel';
 
+
 function HomePage() {
     const [movies, setMovies] = useState([]);
     const [selectedTab, setSelectedTab] = useState('now-showing');

@@ -33,7 +33,13 @@ function SeatSelection({ screening, movieTitle, moviePrice, onClose, onSelectSea
     }, [screening._id, screening.hallId]);
 
     const isSeatBooked = (seatIndex) => {
-        return bookedSeats.includes(seatIndex);
+        // Convert seat index to label (e.g., 0 => "A1", 5 => "A6")
+        if (seats && seats[seatIndex]) {
+            const seat = seats[seatIndex];
+            const seatLabel = `${seat.row}${seat.col}`;
+            return bookedSeats.includes(seatLabel);
+        }
+        return false;
     };
 
     const isSeatSelected = (seatIndex) => {

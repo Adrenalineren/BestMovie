@@ -14,10 +14,25 @@
 <div class="dashboard">
   <div class="container-dashboard">
     <h2 style="margin-bottom: 20px;">Management Dashboard</h2>
+    
+    <div class="stats-summary" id="statsSummary">
+      <div class="stat-card">
+        <div class="stat-label">Today's Revenue</div>
+        <div class="stat-value">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Today's Tickets Sold</div>
+        <div class="stat-value">-</div>
+      </div>
+    </div>
+
     <div class="dashboard-wrapper">
       <div class="dashboard-left-panel">
         <div class="quick-actions-panel">
           <div class="panel-title">Quick Actions</div>
+          <a href="/admin/bookings/bookings-management" class="action-link">
+            <i class="bi bi-ticket-perforated"></i> Manage Bookings
+          </a>
           <a href="/admin/hall/hall-management" class="action-link">
             <i class="bi bi-building-fill-add"></i> Manage Halls
           </a>
@@ -205,6 +220,37 @@
       });
       btn.textContent = todayExpanded ? 'Show Less' : 'Show All';
     }
+
+    // Load dashboard stats
+    async function loadDashboardStats() {
+      try {
+        const statsResponse = await fetch('/api/admin/dashboard-stats');
+        const statsData = await statsResponse.json();
+
+        if (statsData.success) {
+          const stats = statsData.stats;
+          const summaryHTML = `
+            <div class="stat-card">
+              <div class="stat-label">Today's Revenue</div>
+              <div class="stat-value">S$${parseFloat(stats.todayRevenue).toFixed(2)}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Today's Tickets Sold</div>
+              <div class="stat-value">${stats.todayTickets}</div>
+            </div>
+          `;
+          document.getElementById('statsSummary').innerHTML = summaryHTML;
+        }
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+      }
+    }
+
+    // Initial load
+    loadDashboardStats();
+
+    // Auto-refresh every 10 seconds
+    window.setInterval(loadDashboardStats, 10000);
   </script>
 </body>
 </html>

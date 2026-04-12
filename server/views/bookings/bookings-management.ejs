@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Management - CineVillage</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <%- include('../navbar') %>
+  <%- include('../sidebar') %>
+
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 class="management-title">Booking Management</h2>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="bookingSearchInput" placeholder="Search by customer name, email, or movie title..." class="form-control" style="max-width: 300px;">
+    </div>
+
+    <div class="stats-summary" id="statsSummary">
+      <div class="stat-card">
+        <div class="stat-label">Total Bookings</div>
+        <div class="stat-value">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Tickets Sold</div>
+        <div class="stat-value">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Most Booked Movie</div>
+        <div class="stat-value" style="font-size: 14px;">-</div>
+      </div>
+    </div>
+
+    <table class="table" id="bookingsTable" style="display: table;">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Customer Name</th>
+          <th>Email</th>
+          <th>Movie</th>
+          <th>Date & Time</th>
+          <th>Hall</th>
+          <th>Seats</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Booked On</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsBody">
+        <tr>
+          <td colspan="10" style="text-align: center;">Loading bookings...</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="noBookings" class="no-bookings" style="display: none;">
+      <i class="bi bi-inbox"></i>
+      <p>No bookings found</p>
+    </div>
+  </div>
+
+  <script src="/sidebar-toggle.js"></script>
+  <script>
+    let allBookings = [];
+
+    async function confirmDelete(bookingId, customerName) {
+      if (confirm(`Are you sure you want to delete the booking for ${customerName}? This action cannot be undone.`)) {
+        await deleteBooking(bookingId);
+      }
+    }
+
+    async function deleteBooking(bookingId) {
+      try {
+        const response = await fetch(`/api/admin/bookings/${bookingId}`, {
+          method: 'DELETE'
+        });
+        
+        const data = await response.json();
+
+        if (data.success) {
+          alert('Booking deleted successfully');
+          loadBookings();
+        } else {
+          alert('Error deleting booking: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error deleting booking:', error);
+        alert('Failed to delete booking: ' + error.message);
+      }
+    }
+
+    async function loadBookings() {
+      try {
+        // Load bookings without status filter
+        const response = await fetch('/api/admin/bookings');
+        const data = await response.json();
+
+        // Load stats
+        const statsResponse = await fetch('/api/admin/dashboard-stats');
+        const statsData = await statsResponse.json();
+
+        // Update stats summary
+        if (statsData.success) {
+          const stats = statsData.stats;
+          const summaryHTML = `
+            <div class="stat-card">
+              <div class="stat-label">Total Bookings</div>
+              <div class="stat-value">${stats.totalBookings}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Revenue</div>
+              <div class="stat-value">S$${stats.totalRevenue}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Tickets Sold</div>
+              <div class="stat-value">${stats.totalTickets}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Most Booked Movie</div>
+              <div class="stat-value" style="font-size: 14px;">${stats.mostBookedMovie}</div>
+            </div>
+          `;
+          document.getElementById('statsSummary').innerHTML = summaryHTML;
+        }
+
+        // Render bookings
+        if (!data.success || data.bookings.length === 0) {
+          document.getElementById('bookingsTable').style.display = 'none';
+          document.getElementById('noBookings').style.display = 'block';
+          return;
+        }
+
+        allBookings = data.bookings;
+        renderBookings(allBookings);
+      } catch (error) {
+        console.error('Error loading bookings:', error);
+        document.getElementById('bookingsBody').innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align: center; color: #e74c3c;">Error loading bookings: ${error.message}</td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderBookings(bookings) {
+      if (bookings.length === 0) {
+        document.getElementById('bookingsTable').style.display = 'none';
+        document.getElementById('noBookings').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('bookingsTable').style.display = 'table';
+      document.getElementById('noBookings').style.display = 'none';
+
+      const tbody = document.getElementById('bookingsBody');
+      tbody.innerHTML = bookings.map(booking => {
+        const bookingDate = new Date(booking.createdAt).toLocaleDateString('en-SG');
+        const bookingTime = new Date(booking.createdAt).toLocaleTimeString('en-SG', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+
+        return `
+          <tr>
+            <td><strong>${booking._id.toString().slice(-8).toUpperCase()}</strong></td>
+            <td>${booking.customerName}</td>
+            <td>${booking.customerEmail}</td>
+            <td>${booking.movieTitle}</td>
+            <td>${booking.screeningDate} @ ${booking.screeningTime}</td>
+            <td>${booking.hallName}</td>
+            <td><div class="seats-list">${(booking.seats || []).join(', ')}</div></td>
+            <td><strong>S$${booking.totalAmount.toFixed(2)}</strong></td>
+            <td><span class="status-badge status-${booking.status?.toLowerCase() || 'confirmed'}">${booking.status?.toUpperCase() || 'CONFIRMED'}</span></td>
+            <td>${bookingDate} <br> ${bookingTime}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" onclick="confirmDelete('${booking._id}', '${booking.customerName}')">
+                <i class="bi bi-trash"></i> Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById('bookingSearchInput');
+    searchInput.addEventListener('keyup', () => {
+      const searchTerm = searchInput.value.toLowerCase();
+      const filtered = allBookings.filter(booking => {
+        return (
+          booking.customerName.toLowerCase().includes(searchTerm) ||
+          booking.customerEmail.toLowerCase().includes(searchTerm) ||
+          booking.movieTitle.toLowerCase().includes(searchTerm)
+        );
+      });
+      renderBookings(filtered);
+    });
+
+    // Auto-refresh every 10 seconds
+    window.setInterval(loadBookings, 10000);
+
+    // Initial load
+    loadBookings();
+  </script>
+</body>
+</html>
