@@ -5,6 +5,7 @@ import '../assets/MyTickets.css';
 export default function MyTickets() {
     const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
+    const [cancelledBookings, setCancelledBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [customer, setCustomer] = useState(null);
@@ -36,13 +37,20 @@ export default function MyTickets() {
             if (!response.ok) {
                 setError(data.error || 'Failed to fetch bookings');
                 setBookings([]);
+                setCancelledBookings([]);
             } else {
-                setBookings(data.bookings || []);
+                const allBookings = data.bookings || [];
+                const activeBookings = allBookings.filter((booking) => (booking.status || 'confirmed').toLowerCase() !== 'cancelled');
+                const cancelled = allBookings.filter((booking) => (booking.status || '').toLowerCase() === 'cancelled');
+
+                setBookings(activeBookings);
+                setCancelledBookings(cancelled);
                 setError('');
             }
         } catch (err) {
             setError('Error fetching bookings: ' + err.message);
             setBookings([]);
+            setCancelledBookings([]);
         } finally {
             setLoading(false);
         }
@@ -77,6 +85,7 @@ export default function MyTickets() {
     };
 
     const sortedBookings = [...bookings].sort((a, b) => getScreeningDateTime(a) - getScreeningDateTime(b));
+    const hasCancelledBookings = cancelledBookings.length > 0;
 
     if (loading) {
         return (
@@ -97,6 +106,27 @@ export default function MyTickets() {
                         {error}
                     </div>
                 )}
+
+                {hasCancelledBookings && (
+                    <div className="cancellation-notice" role="status" aria-live="polite">
+                        <div className="cancellation-notice-title">✓ Refund Processed</div>
+                        <p>
+                            {cancelledBookings.length} booking{cancelledBookings.length > 1 ? 's were' : ' was'} cancelled and refunded because the hall entered maintenance.
+                        </p>
+                        <div className="cancellation-list">
+                            {cancelledBookings.map((booking) => (
+                                <div key={booking._id} className="cancellation-item">
+                                    <strong>{booking.movieTitle}</strong>
+                                    <span>
+                                        {booking.screeningDate ? formatDate(booking.screeningDate) : 'Screening date unavailable'}
+                                        {booking.screeningTime ? `, ${booking.screeningTime}` : ''}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Back Button */}
                 <div className="back-to-home">
                     <button className="back-home-btn" onClick={() => navigate('/')}>
@@ -107,8 +137,10 @@ export default function MyTickets() {
                 {/* Results */}
                 {bookings.length === 0 ? (
                     <div className="no-bookings">
-                        <p>You don't have any bookings yet.</p>
-                        <p className="hint">Start booking your favorite movies now!</p>
+                        <p>{hasCancelledBookings ? 'Your active tickets are no longer available.' : "You don't have any bookings yet."}</p>
+                        <p className="hint">
+                            {hasCancelledBookings ? 'The cancellation notice above lists the screenings that were removed.' : 'Start booking your favorite movies now!'}
+                        </p>
                         <button 
                             className="browse-btn"
                             onClick={() => navigate('/')}

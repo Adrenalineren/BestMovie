@@ -12,6 +12,19 @@ export default function Checkout() {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [authModalMode, setAuthModalMode] = useState('login');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+    const showToast = (message, type = 'info') => {
+        setToast({ show: true, message, type });
+    };
+
+    useEffect(() => {
+        if (!toast.show) return;
+        const id = window.setTimeout(() => {
+            setToast((prev) => ({ ...prev, show: false }));
+        }, 3500);
+        return () => window.clearTimeout(id);
+    }, [toast.show]);
 
     // Check if user is logged in
     useEffect(() => {
@@ -80,17 +93,17 @@ export default function Checkout() {
         }
 
         if (!selectedPayment) {
-            alert('Please select a payment method');
+            showToast('Please select a payment method.', 'warning');
             return;
         }
 
         if (!customerName.trim()) {
-            alert('Please enter your name');
+            showToast('Please enter your name.', 'warning');
             return;
         }
 
         if (!customerEmail.trim() || !customerEmail.includes('@')) {
-            alert('Please enter a valid email address');
+            showToast('Please enter a valid email address.', 'warning');
             return;
         }
 
@@ -135,8 +148,21 @@ export default function Checkout() {
             console.log('Response data:', data);
 
             if (!response.ok || !data.success) {
-                alert(`${data.error || 'Booking failed'}\n\nPlease go back and select different seats.`);
-                navigate(-1);
+                if (response.status === 409) {
+                    const maintenanceMessage = data.error || '';
+                    if (maintenanceMessage.toLowerCase().includes('maintenance') || maintenanceMessage.toLowerCase().includes('cancelled')) {
+                        showToast(`${maintenanceMessage} Your original booking has been refunded.`, 'error');
+                        return;
+                    }
+
+                    const conflictInfo = Array.isArray(data.conflictingSeats) && data.conflictingSeats.length > 0
+                        ? ` Taken: ${data.conflictingSeats.join(', ')}.`
+                        : '';
+                    showToast(`Seat just taken by another user.${conflictInfo} Please choose different seats.`, 'error');
+                    return;
+                }
+
+                showToast(data.error || 'Booking failed. Please try again.', 'error');
                 return;
             }
             // SUCCESS - Booking confirmed! Navigate to confirmation page
@@ -149,12 +175,17 @@ export default function Checkout() {
             
         } catch (error) {
             console.error(' Booking error details:', error);
-            alert(`Error processing booking:\n${error.message}\n\nMake sure the server is running on http://localhost:3000`);
+            showToast(`Error processing booking: ${error.message}`, 'error');
         }
     };
     
     return (
         <>
+            {toast.show && (
+                <div className={`checkout-toast checkout-toast-${toast.type}`} role="alert" aria-live="polite">
+                    {toast.message}
+                </div>
+            )}
             <AuthModal 
                 isOpen={showAuthModal}
                 onClose={() => setShowAuthModal(false)}

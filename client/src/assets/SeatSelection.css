@@ -140,8 +140,8 @@
 }
 
 .seat.wheelchair {
-    background: #9e7dd6;
-    border-color: #c883d4;
+    background: #e09045;
+    border-color: #e5990b;
     cursor: not-allowed;
 }
 
@@ -194,8 +194,8 @@
 }
 
 .legend-seat.wheelchair {
-    background: #9c27b0;
-    border-color: #9c27b0;
+    background: #e3b853;
+    border-color: #efae16;
 }
 
 .legend-seat.disabled {

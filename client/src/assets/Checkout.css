@@ -6,6 +6,38 @@
     color: #fff;
 }
 
+.checkout-toast {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 1200;
+    max-width: 420px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.checkout-toast-error {
+    background: #3b1010;
+    color: #ffd6d6;
+    border: 1px solid #c55353;
+}
+
+.checkout-toast-warning {
+    background: #3b3110;
+    color: #ffeeb7;
+    border: 1px solid #b99729;
+}
+
+.checkout-toast-info {
+    background: #10263b;
+    color: #d7ecff;
+    border: 1px solid #3f79b1;
+}
+
 .checkout-section {
     margin-bottom: 20px;
     padding: 20px 0;

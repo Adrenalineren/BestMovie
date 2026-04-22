@@ -8,7 +8,7 @@ const getAllScreeningsJSON = async (req, res) => {
     const movies = getCollection('movies');
     const halls = getCollection('halls');
 
-    const allScreenings = await screenings.find().sort({ date: 1, screeningTime: 1 }).toArray();
+    const allScreenings = await screenings.find({ status: { $ne: 'Cancelled' } }).sort({ date: 1, screeningTime: 1 }).toArray();
 
     const populatedScreenings = await Promise.all(
       allScreenings.map(async (screening) => {
@@ -41,7 +41,7 @@ const getScreeningsByMovieJSON = async (req, res) => {
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; // HH:mm
 
     const movieScreenings = await screenings
-      .find({ movieId: new ObjectId(req.params.movieId) })
+      .find({ movieId: new ObjectId(req.params.movieId), status: { $ne: 'Cancelled' } })
       .sort({ date: 1, screeningTime: 1 })
       .toArray();
 

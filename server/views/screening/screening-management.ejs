@@ -259,7 +259,7 @@
             else if (isWheelchair) seatClass += ' wheelchair';
             else if (isBooked) seatClass += ' booked';
 
-            const displayText = isWheelchair ? '♿' : isDisabled ? '✕' : col;
+            const displayText = isWheelchair ? '<i class="bi bi-person-wheelchair"></i>' : isDisabled ? '✕' : col;
             const title = isDisabled ? 'Disabled' : isWheelchair ? 'Wheelchair accessible' : isBooked ? `Booked - ${seatLabel}` : seatLabel;
 
             html += `<button class="${seatClass}" title="${title}" disabled>${displayText}</button>`;
@@ -295,14 +295,12 @@
         // Add booking stats
         const totalCapacity = seats.length;
         const availableSeats = totalCapacity - bookedSeats.length;
-        const occupancyPercent = ((bookedSeats.length / totalCapacity) * 100).toFixed(1);
 
         html += `
           <div class="booking-stats">
             <p><strong>Total Capacity:</strong> ${totalCapacity} seats</p>
             <p><strong>Booked:</strong> ${bookedSeats.length} seats</p>
             <p><strong>Available:</strong> ${availableSeats} seats</p>
-            <p><strong>Occupancy:</strong> ${occupancyPercent}%</p>
           </div>
         `;
 

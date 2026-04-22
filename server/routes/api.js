@@ -21,7 +21,7 @@ router.get('/screenings', async (req, res) => {
     const movies = getCollection('movies');
     const halls = getCollection('halls');
 
-    const allScreenings = await screenings.find().sort({ date: 1, screeningTime: 1 }).toArray();
+    const allScreenings = await screenings.find({ status: { $ne: 'Cancelled' } }).sort({ date: 1, screeningTime: 1 }).toArray();
 
     const populatedScreenings = await Promise.all(
       allScreenings.map(async (screening) => {
@@ -47,7 +47,7 @@ router.get('/screenings/movie/:movieId', async (req, res) => {
     const halls = getCollection('halls');
 
     const movieScreenings = await screenings
-      .find({ movieId: new ObjectId(req.params.movieId) })
+      .find({ movieId: new ObjectId(req.params.movieId), status: { $ne: 'Cancelled' } })
       .sort({ date: 1, screeningTime: 1 })
       .toArray();
 

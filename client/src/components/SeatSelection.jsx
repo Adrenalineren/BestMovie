@@ -131,7 +131,7 @@ function SeatSelection({ screening, movieTitle, moviePrice, onClose, onSelectSea
             <div className="seat-selection-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="seat-selection-header">
                     <h2>{movieTitle} - {hall.name}</h2>
-                    <button className="close-btn" onClick={onClose}>×</button>
+                    <button className="close-btn" onClick={onClose}>x</button>
                 </div>
 
                 <div className="seat-selection-content">
@@ -179,7 +179,7 @@ function SeatSelection({ screening, movieTitle, moviePrice, onClose, onSelectSea
                                                     `Seat ${rowLetter}${col}`
                                                 }
                                             >
-                                                {isWheelchair ? '♿' : isDisabled ? '✕' : col}
+                                                {isWheelchair ? <i className="bi bi-person-wheelchair" aria-hidden="true"></i> : isDisabled ? '✕' : col}
                                             </button>
                                         );
                                     })}

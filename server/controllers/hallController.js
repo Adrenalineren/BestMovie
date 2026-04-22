@@ -101,9 +101,70 @@ const getHallScreeningsCheck = async (req, res) => {
 
 const postHallStatus = async (req, res) => {
   const halls = getCollection('halls');
+  const screenings = getCollection('screenings');
+  const bookings = getCollection('bookings');
+
   const hall = await halls.findOne({ _id: new ObjectId(req.params.id) });
+  if (!hall) {
+    return res.status(404).send('Hall not found');
+  }
+
   const newStatus = hall.status === 'active' ? 'maintenance' : 'active';
+
+  let cancelledScreenings = 0;
+  let cancelledBookings = 0;
+
+  if (newStatus === 'maintenance') {
+    const now = new Date();
+    const hallScreenings = await screenings.find({ hallId: hall._id }).toArray();
+
+    const upcomingScreenings = hallScreenings.filter((screening) => {
+      const screeningDateTime = new Date(`${screening.date}T${screening.screeningTime || '00:00'}`);
+      return !Number.isNaN(screeningDateTime.getTime()) && screeningDateTime >= now;
+    });
+
+    if (upcomingScreenings.length > 0) {
+      const screeningIds = upcomingScreenings.map((screening) => screening._id);
+      const affectedBookings = await bookings.find({ screeningId: { $in: screeningIds } }).toArray();
+
+      if (affectedBookings.length > 0) {
+        const refundAmount = affectedBookings.reduce((sum, booking) => sum + (booking.totalAmount || 0), 0);
+        await bookings.updateMany(
+          { _id: { $in: affectedBookings.map((booking) => booking._id) } },
+          {
+            $set: {
+              status: 'cancelled',
+              cancellationReason: `Screening cancelled because ${hall.name} is under maintenance.`,
+              cancelledAt: new Date(),
+              refundAmount: affectedBookings[0].totalAmount,
+              refundedAt: new Date()
+            }
+          }
+        );
+      }
+
+      await screenings.updateMany(
+        { _id: { $in: screeningIds } },
+        {
+          $set: {
+            status: 'Cancelled',
+            cancellationReason: `Hall ${hall.name} is under maintenance.`,
+            cancelledAt: new Date()
+          }
+        }
+      );
+
+      cancelledScreenings = screeningIds.length;
+      cancelledBookings = affectedBookings.length;
+    }
+  }
+
   await halls.updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status: newStatus } });
+
+  req.session.successMessage = newStatus === 'maintenance'
+    ? `Hall "${hall.name}" set to maintenance. Cancelled ${cancelledScreenings} screening(s) and ${cancelledBookings} booking(s).`
+    : `Hall "${hall.name}" set to active.`;
+
   res.redirect('/admin/hall/hall-management');
 };
 

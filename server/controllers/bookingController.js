@@ -14,7 +14,33 @@ const postCreateBooking = async (req, res) => {
     }
 
     const screenings = getCollection('screenings');
+    const halls = getCollection('halls');
     const bookings = getCollection('bookings');
+
+    const screening = await screenings.findOne({ _id: new ObjectId(screeningId) });
+    if (!screening) {
+      return res.status(404).json({
+        success: false,
+        error: 'Screening not found'
+      });
+    }
+
+    if ((screening.status || '').toLowerCase() === 'cancelled') {
+      return res.status(409).json({
+        success: false,
+        error: 'This screening has been cancelled because the hall is under maintenance.',
+        statusCode: 409
+      });
+    }
+
+    const hall = await halls.findOne({ _id: screening.hallId });
+    if (!hall || hall.status !== 'active') {
+      return res.status(409).json({
+        success: false,
+        error: 'This screening is no longer available because the hall is under maintenance.',
+        statusCode: 409
+      });
+    }
 
     // ATOMIC OPERATION: Check if seats are available AND book them in one operation
     // This prevents race conditions where two users book the same seat simultaneously

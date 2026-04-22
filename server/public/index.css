@@ -392,6 +392,8 @@ button:hover {
     letter-spacing: 4px;
     width: 500px;
 }
+
+
 .seat-row { 
     display: flex; 
     align-items: center; 
@@ -1593,12 +1595,16 @@ button:hover {
 
 .screen {
   text-align: center;
-  margin: 20px 0;
+  margin: 20px auto;
   padding: 10px;
   background-color: #333;
   color: white;
   border-radius: 4px;
   font-weight: bold;
+}
+
+.modal-content .screen {
+  margin: 20px auto;
 }
 
 .seating-grid {
@@ -1705,4 +1711,241 @@ button:hover {
 .booking-stats p {
   margin: 5px 0;
   font-size: 14px;
+}
+
+/* Screening Seats Page */
+.screening-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  min-height: 100vh;
+}
+
+.screening-container .screening-header {
+  margin-bottom: 30px;
+}
+
+.screening-container .screening-title {
+  color: #ffd700;
+  font-size: 28px;
+  margin: 0 0 10px 0;
+}
+
+.screening-container .screening-info {
+  color: #ccc;
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+.screening-container .screening-content {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #ffd700;
+  border-radius: 8px;
+  padding: 30px;
+}
+
+.screening-container .screen {
+  text-align: center;
+  color: #ffd700;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 40px;
+  padding: 10px;
+  border: 2px dashed #ffd700;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.screening-container .seating-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 40px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  align-items: center;
+}
+
+.screening-container .seat-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.screening-container .row-label {
+  width: 35px;
+  text-align: center;
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.screening-container .seat {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background: #4a90e2;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screening-container .seat.available {
+  background: #4a90e2;
+  border-color: #4a90e2;
+  cursor: pointer;
+}
+
+.screening-container .seat.booked {
+  background: #e74c3c;
+  border-color: #ea1f1f;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.screening-container .seat.wheelchair {
+  background: #3c00a4;
+  border-color: #c883d4;
+  cursor: not-allowed;
+}
+
+.screening-container .seat.disabled {
+  background: #666;
+  border-color: #999;
+  cursor: not-allowed;
+}
+
+.screening-container .legend {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.screening-container .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ccc;
+}
+
+.screening-container .legend-seat {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screening-container .bookings-list {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #ffd700;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+}
+
+.screening-container .bookings-title {
+  color: #ffd700;
+  font-size: 18px;
+  margin: 0 0 20px 0;
+  font-weight: bold;
+}
+
+.screening-container .booking-item {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border-left: 3px solid #ffd700;
+}
+
+.screening-container .booking-customer {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.screening-container .booking-seats {
+  color: #ccc;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.screening-container .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.screening-container .stat-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #ffd700;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+}
+
+.screening-container .stat-label {
+  color: #999;
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.screening-container .stat-value {
+  color: #ffd700;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.screening-container .loading {
+  text-align: center;
+  color: #ccc;
+  padding: 40px;
+}
+
+.screening-container .error {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid #e74c3c;
+  border-radius: 8px;
+  padding: 20px;
+  color: #e74c3c;
+  margin: 20px 0;
+}
+
+@media (max-width: 768px) {
+  .screening-container .screening-content {
+    padding: 15px;
+  }
+
+  .screening-container .seat {
+    width: 30px;
+    height: 30px;
+    font-size: 9px;
+  }
+
+  .screening-container .legend {
+    gap: 10px;
+  }
+
+  .screening-container .legend-item {
+    font-size: 12px;
+  }
+
+  .screening-container .legend-seat {
+    width: 20px;
+    height: 20px;
+  }
 }
